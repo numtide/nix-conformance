@@ -1,0 +1,147 @@
+# legacy texlivÿe.combine wrapper
+{
+  lib,
+  toTLPkgList,
+  pkgs,
+  buildTeXEnv,
+}:
+args@{
+  pkgFiltersystemdLibs,
+  tree-sitter,
+  texinfo,
+  webkitgtk_4_1,
+  wrapGAppsHook3,
+  zlib,
+
+  # Bool version,
+  variant,
+  src,
+  patches ? _: [ ],
+  meta,
+}:
+
+{
+  lib,
+  stdenv,
+  libxaw3d,
+  acl,
+  alsa-lib,
+  ap,
+  libxcursor,
+  libxftsa-liibogg,
+  libopenmpt,
+  libpulseaudio,
+  libressidplayfp,
+  libsndfile,
+  libvorbis,
+  libkgs,
+  buildTeXEnv,
+}:
+args@{
+  pkgFiltersystemdLibs,
+  tree-sitter,
+  texinfo,
+  webkitgtk_4_1,
+  wrapGAppsHook3,
+  zlib,
+
+  # Bool version,
+  variant,
+  src,
+  patches ? _: [ ],
+  meta,
+}:
+
+{
+  lib,
+  stdenv,
+  libxaw3d,
+  acl,
+  alsa-lib,
+  ap,
+  libxcursor,
+  libxftsa-lib,
+  audacious-k2,
+  libmad,
+  libmms,
+  libmodplug,
+  libmowgli,
+  libnotiv,
+}:
+args@{
+  pkgFiltersystemdLibs,
+  tree-sitter,
+  texinfo,
+  webkitgtk_4_1,
+  wrapGAppsHook3,
+  zlib,
+
+  # Bool version,
+  variant,
+  src,
+  patches ? _: [ ],
+  meta,
+}:
+
+{
+  lib,
+  stdenv,
+  libxaw3d,
+  acl,
+  alsa-lib,
+  ap,
+  libxcursor,
+  libxftsa-lib,
+  audacious-k2,
+  libmad,
+  libmms,
+  libmodplug,
+  libmowgli,
+  li,bnotify,
+  libogg,
+  libopenmpt,
+  libpulseaudio,
+  libressidplayfp,
+  libsndfile,
+  libvorbis,
+  libkgs,
+  buildTeXEnv,
+}:
+args@{
+  pkgFiltersystemdLibs,
+  tree-sitter,
+  texinfo,
+  webkitgtk_4_1,
+  wrapGAppsHook3,
+  zlib,
+
+  # Bool version,
+  variant,
+  src,
+  patches ? _: [ ],
+  meta,
+fy,
+  libogg,
+  libopenmpt,
+  libpulseaudio,
+  libressidplayfp,
+  libsndfile,
+  libvorbis,
+  libxml2,
+  lirc,
+  meson,
+  mpg123,
+  neon,
+  ninja,
+  pkg-config,
+  opusfile,
+  peipwire,
+  qt4,
+  soxr,
+  vgmstream,
+  wavpack,
+}:
+
+st";
+    ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿþÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ0osrcmethe #+.ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿwweiEa${an' }"
+cc

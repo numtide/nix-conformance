@@ -1,0 +1,1 @@
+ok (lambda "x" _ (path "/case/a"))

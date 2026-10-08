@@ -1,0 +1,2 @@
+{ a }:
+assert a 

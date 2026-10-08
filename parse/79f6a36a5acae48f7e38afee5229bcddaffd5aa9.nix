@@ -1,0 +1,1 @@
+let a = 1; inherit (b) "${c}"; in a

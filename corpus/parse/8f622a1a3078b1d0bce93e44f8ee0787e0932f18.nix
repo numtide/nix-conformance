@@ -1,0 +1,7 @@
+{ momo }
+:
+
+mihalAttrs: previous: {
+ ! b
+  }
+)

@@ -1,0 +1,1 @@
+{a.c = 2.5; "x${y}" = 3; inherit ; inherit (z) q; inherit r; }

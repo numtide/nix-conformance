@@ -1,0 +1,1 @@
+2+d-store/s<=psqot_____________/${pn+ame}-${version}//.tar--------------i

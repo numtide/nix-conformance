@@ -1,0 +1,1 @@
+ok (attrs nonrec (bind "a" (int 2)) (dyn-bind (str "a$") (int 1)))

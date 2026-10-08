@@ -1,0 +1,1 @@
+ok (attrs nonrec (bind "a" (attrs nonrec (bind "b" (attrs nonrec (bind "c" (int 1)) (bind "d" (int 2)))) (bind "e" (int 3)))))

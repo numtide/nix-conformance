@@ -1,0 +1,1 @@
+ok (call (var "__findFile") (var "__nixPath") (str "nixpkgs/lib"))

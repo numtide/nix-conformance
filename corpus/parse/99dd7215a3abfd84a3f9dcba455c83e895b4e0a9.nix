@@ -1,0 +1,2 @@
+{
+  submoule.config.config }

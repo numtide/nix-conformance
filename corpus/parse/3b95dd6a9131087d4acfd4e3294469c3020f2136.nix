@@ -1,0 +1,5 @@
+-cacte0
+     ---54or---j-4/ or---j/ --j/ -4or---j/  acte0
+     -----j/ -4or---j/  acte0
+        -----j/ -4or---j/  acte0
+     ----4or---j/ -4or---j/ --j/ -4or---j/ - ----4or---j/ -4or---j/ --j/ -4or---j/ --4or.5-jl

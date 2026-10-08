@@ -1,0 +1,5 @@
+{magele-watermavCC,
+}:
+
+ fitouch "$out"
+''

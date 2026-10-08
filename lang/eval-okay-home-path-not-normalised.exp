@@ -1,0 +1,1 @@
+[ "/fake-home/a/../b" "/fake-home/./a" "/fake-home/a/.." "/fake-home/../x" "/fake-home/a/b" "/fake-home/b" ]

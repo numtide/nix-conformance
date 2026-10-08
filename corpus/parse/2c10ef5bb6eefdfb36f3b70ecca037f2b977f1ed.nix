@@ -1,0 +1,1 @@
+/ba//./.b/cob/ba/../.b/cob/corn/ba//ba/../.b/cob/ba/../.b/cob/corn/ba/.rn/.b/cob/ba/../.b/co/./.b/cob/ba/../a/..

@@ -1,0 +1,1 @@
+ok (interp (str "a") (var "b") (str "  "))

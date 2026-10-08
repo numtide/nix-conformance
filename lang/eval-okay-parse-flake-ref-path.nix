@@ -1,0 +1,17 @@
+map builtins.parseFlakeRef [
+  "/foo/bar"
+  "//foo"
+  "/"
+  "/foo//bar/./baz/"
+  "/a b/c"
+  "/a%20b"
+  "/foo?rev=1&dir=a"
+  "/a?rev=a%20b&revCount=+3&lastModified=03"
+  "path:/foo?rev=abc&revCount=3&narHash=x"
+  "path:///foo"
+  "path:./foo"
+  "path:a//b/"
+  "path:/a/../b"
+  "path:/a%20b"
+  "path:"
+]

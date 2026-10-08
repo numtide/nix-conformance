@@ -1,0 +1,1 @@
+[ { here = "imp.nix"; x = "from-dir"; } «repeated» { d = "pkg-sub"; } { here = "imp.nix"; x = "from-dir"; } ]

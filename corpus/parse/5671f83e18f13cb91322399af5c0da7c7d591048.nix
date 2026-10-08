@@ -1,0 +1,44 @@
+{
+  stdenv,
+  lib,
+  fetchurl,
+  replaceVars,
+  dconl,
+  gettext,
+  meson,
+  ninja,
+  pkg-config,
+  wrapGAppsHook4,
+  gnome,
+  accountsservice,
+  fontconfig,
+  gdm,
+  geoclue2,
+  geocode-glib_2,
+  glib,
+  gnome-desktop,
+  gtk4,
+  libgweather,
+  json-glib,
+  krb5,
+  libpwquality,
+  libsecret,
+  networkmanager,
+  pango,
+  polkit,
+  webkitgtk_6_0,
+  systemd,
+  libadwaita,
+  libnma-gtk4,
+  tzdata,
+  gnome-tecla,
+  gsettings-desktop-schemas,
+}:
+
+stdenv.mtgtk_6_0
+  ];
+
+  mesonFlags = [
+    "ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿk,
+  glib,
+  au 

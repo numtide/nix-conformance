@@ -1,0 +1,17 @@
+/mE
+*s/mE*/loSrcS*/lonmE
+*smE*/loSrcS*/lonmE
+*s/mF*/loSrcS*/lon#otA/d/locaotA/d/local../duts||./dutscS//mF*/loSrcS*/lon#otA/d/locastA/d/local/mE
+*s/mE*/loSrcS*/lonmE
+*smE*/loSrcS*/lonmE
+*s/mE*/loSrcS*/lonmE
+*s/mF*/loSrcS*/lon#otA/d/locao*s/mE*/loSrcS*/lonmE
+*smE*/loSrcS*/lonmE
+*s/mF*/loSrcS*/lon#otA/d/locaotA/d/local../duts||./dutscS//mF*/loSrcS*/lon#otA/d/locastA/d/local/mE
+*s/mE*/loSrcS*/lonmE
+*smE*/loSmF*/loSrcS*/lon#otA/d/locao*s/mE*/loSrcS*/lonmE
+*smE*/loSrcS*/lonmE
+*s/mF*/loSrcS*/lon#otA/d/locaotA/d/local../duts||./dutscS//mF*/loSrcS*/lon#otA/d/locastA/d/local/mE
+*s/mE*/loSrcS*/lonmE
+*smE*/loSrcS*/lonmE
+*s/mF*/loSrcS*/lon#otA/d/locaotA/d/local../-uts||./dutscS//mF*/loSrcS*/lon#otA/d/loca../duts||./dutscS/dStA/d/local../-uts||./dutscS//mF*/loSrcS*/lon#otA/d/loca../duts||./dutscS/dS

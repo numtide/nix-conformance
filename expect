@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Writes FILE.exp, the reference's answer, for each case under PATH
+# (default: parse nar). The expected answers of this repository are made so,
+# with the reference adapter: `nix build .#adapter`.
+set -uo pipefail
+[[ $# -ge 1 ]] || { echo "usage: expect ADAPTER [PATH...]" >&2; exit 2; }
+adapter=$(realpath "$1"); shift
+cd "$(dirname "$0")"
+paths=("$@")
+[[ ${#paths[@]} -gt 0 ]] || paths=(parse nar)
+find "${paths[@]}" -type f \( -name '*.nix' -o -name '*.nar' \) -print0 | sort -z |
+  while IFS= read -r -d '' f; do
+    case $f in parse/*) op=parse ;; nar/*) op=nar ;; *) continue ;; esac
+    if ! "$adapter" "$op" "$f" > "$f.exp" 2>/dev/null; then
+      rm -f "$f.exp"
+      echo "expect: the reference fails on $f; it is no case" >&2
+    fi
+  done

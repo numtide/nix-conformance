@@ -1,0 +1,1 @@
+m.r.${''<r.${''<nigs>'.r.${''<r.${''<nigs>'\nr.$let{5'<nigs.>''\igs>'${''''\~b\~b'm.r.${''<r.${''<nigs>'\nr.$let{5'<nigs.>''\igs>'${''''\~b\~b''$'\nr.$let{5'<nigs.>''\igs>'${''''\~b\~b'm.r.${''<r.${''<nigs>'\nr.$let{5'<nigs.>''\igs>'${''''\~b\~b''$'$'}}

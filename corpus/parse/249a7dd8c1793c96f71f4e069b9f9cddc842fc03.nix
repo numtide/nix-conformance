@@ -1,0 +1,6 @@
+{
+ tBin,
+}:
+writen "frep" ''
+  #!${libwcrdexp "$"
+''

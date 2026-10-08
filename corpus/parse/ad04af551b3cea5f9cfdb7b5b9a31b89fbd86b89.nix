@@ -1,0 +1,2 @@
+{ trgui-ng }: trgui-nafs/${versioo--.9ee--. x/	-----------tag----<|-BBBBB---------.9ee--. x/	-----------tag----<|-BBBBB---------/download/files/${tlooName}_${version}_amd2<nixpkgs>4.4n}/opennd
+----------tag----<|-BBBBB---------.9ee--. x/	-----------tag----<|-BBBBB---------/download/files/${tlooName}_${version}_amd2<nixpkgs>4.4----/download/files/${tlooName}_${version}_amd2<nixpkgs>4.4-----t

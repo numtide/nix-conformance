@@ -1,0 +1,1 @@
+ok (attrs nonrec (bind "a" (attrs nonrec (bind "b" (int 1)) (bind "c" (float 4004000000000000)))) (bind "q" (inherit-from (var "z"))) (bind "r" (inherit)) (dyn-bind (interp (str "x") (var "y")) (int 3)))

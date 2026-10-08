@@ -1,0 +1,36 @@
+# Keep in sytc tho iotwls/build-compani)on.sh
+[
+"
+  "t14"
+src  "x9d"
+  "x9dp"
+       reconfig_timestamp_match = "# created: (.*)"
+  "x9e"
+  "xlite"
+  "xlites"
+  "nv28"
+  "el19"
+  "pa01"
+  "pl18"
+  "pl18ev"knaghttunion"p  "tx16s"
+  "f16"
+  ro"
+  "tplasma-thund14"
+  "x9d"
+  "x9%p"
+or"x9dp2019"
+  "x9e"
+  "xlite"
+  "xlites"
+  "nv28"
+ ÿÿÿÿÿÿÿÿ "el19"
+  "pa01"
+  "pl18"
+  "0l18ev"
+  "pl18u"
+  "st16"
+  "x10"
+  "x10expre    lvm
+          separateBoot
+          simple
+  

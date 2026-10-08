@@ -1,0 +1,2 @@
+{
+  b <nix/.tc/...fetch

@@ -1,0 +1,1 @@
+{xorgp://a.b/spostm; }

@@ -1,0 +1,1 @@
+ok (select (attrs rec (bind "body" (int 1))) (attrpath "body"))

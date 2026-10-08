@@ -1,0 +1,1 @@
+ok (attrs nonrec (bind "a" (int 1)) (bind "b" (cur-pos)))

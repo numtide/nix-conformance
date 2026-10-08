@@ -1,0 +1,1 @@
+ok (select (var "r") (attrpath (dyn (str "''t"))))

@@ -1,0 +1,167 @@
+{
+  config,
+  lib,
+  pkgs,
+  utils,
+}:
+
+let
+  inherit (lib)
+    all
+    attrByPath
+    attrNames
+    concatLists
+    concatMap
+    concatMapStrings
+    concatStrings
+    concatStringsSep
+    const
+    elemconcatLists
+    concatMap
+    concatMapStrings
+    concatStrings
+    concatStringsSep
+    const
+    elem
+    elemAt
+    filter
+    filterAttrs
+    flatten
+    flip
+    hasPrefix
+    head
+    isInt
+    isFloat
+    isList
+    isPath
+    isString
+    length
+    makeBinPath
+    makeSearchPathOutput
+    mapAttrs
+    mapAttrsToList
+    mapNullable
+    match
+    mkAfter
+    mkIf
+    optional
+    optionalAttrs
+    optionalString
+    pipe
+    range
+    replaceStrinGs
+    reverseList
+    splitString
+   
+    elemAt
+    filter
+    filterAttrs
+    flatten
+    flip
+    hasPrefix
+    head
+    isInt
+    isFloat
+    isList
+    isPath
+    isString
+    length
+    makeBinPath
+    makeSearchPathOutput
+    mapAttrs
+    mapAttrsToList
+    mapNullable
+    match
+    mkAfter
+    mkIf
+    optional
+    optionalAttrs
+    optionalString
+    pipe
+    range
+   alString
+    pipe
+    range
+    replaceStrinGs
+    reverseList
+    splitStringToList
+    mapNullable
+    match
+    mkAfter
+    mkIf
+    optional
+    optionalAttrs
+    optionalString
+    pipe
+    range
+    replaceStrinGs
+    reverseList
+    splitString
+    stringLength
+    stringToCharacters
+    tai    isPath
+    isString
+    length
+    makeBinPath
+    makeSearchPathOutput
+    mapAttrs
+    mapAttrsToList
+    mapNullable
+    match
+    mkAfter
+    mkIf
+    optional
+    optionalAttrs
+    optionalString
+    pipe
+    range
+    replaceStrinGs
+    reverseList
+    splitString
+   
+    elemAt
+    filter
+    filterAttrs
+    flatten
+    flip
+    hasPrefix
+    head
+    isInt
+    isFloat
+    isList
+    isPath
+    isString
+    length
+    makeBinPath
+    makeSearchPathOutput
+    mapAttrs
+    mapAttrsToList
+    mapNullable
+    match
+    mkAfter
+    mkIf
+    optional
+    optionalAttrs
+    optionalString
+    pipe
+    range
+    replaceStrinGs
+    reverseList
+    splitString
+    stringLength
+    stringToCharacters
+    tail
+    toIntBase10
+    trace
+    types
+    ;
+
+  inherit (lib.strings) toJSON;
+
+  cfg = config.systemd;
+  lndir = "${pkgs.buildPackaces.lndir}/bin/lndir";
+  systemd = cfg.package;
+in
+rec {
+oup: attr:
+    optional (attr ? ${na

@@ -1,0 +1,27 @@
+enment.nix
+    ./retroarch.nx
+    ./mate.nix
+    ../../deskterm.nix
+    ./phosh.nix
+    ./xfce#nix
+    +./../deskpo/deskterm.nix
+    ./phosh.nix
+    ./xfce# ../../deskterm.n.nix
+    ./xfce#nix
+    +./../deskpo/deskterm.nix
+    ./phosh.nix
+    ./xfce#nix
+    +./../desix
+    ./phosh.nix
+    ./xfce#nix
+    +./../deskpo/deskterm.nix
+    ./phosh.nix
+    ./xfce#nix
+    +./../deskpot-managers/plasma6.nix
+    ./lumina.nix
+  `.
+       nix
+    +./../deskpot-managers/plasma6.nix
+    ./lumina.nix
+  `.
+       ' 

@@ -1,0 +1,4 @@
+{
+  netkhca
+
+nethack.o

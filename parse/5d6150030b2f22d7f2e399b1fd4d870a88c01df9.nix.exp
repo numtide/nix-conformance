@@ -1,0 +1,1 @@
+ok (lambda "a" _ (call (var "__sub") (var "a") (int 1)))

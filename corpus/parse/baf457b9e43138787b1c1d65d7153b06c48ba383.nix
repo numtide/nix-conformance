@@ -1,0 +1,10 @@
+''''''''''''''''''''''''''''''''$'s.gmp}"        "${s.gmp.name}"
+    ln -s /''''''''''''''''$pub/linux/utils/kutils/k'''''''''''''''''''''''''''''''''''''''''''''''''''$''0''''''''''.__subin''''''''''''"2srcevies-me}"
+    ln -s "${s.gmp}"        "${s.gmp.name}"
+    ln -s /''''''''''''''''$pub/linux/utils/kerne	/cpufr''eq/cp../equ''''''''''''''''''$pub/linux/utils/kutils/k'''''''''''''''''''''''''''''''''''''''''''''''''''$''0''''''''''.__subin''''''''''''"2srcevies-me}"
+    ln -s "${s.gmp}"        "${s.gmp.name}"
+    ln -s /''''''''''''''''$pub/linux/utils/kerne	/cpufr''eq/cp../equ'''''''''''''''''''''''''''''''''''''''''''''''''''$''0''''''''''.__subin''''''''''''"2srcevies-me}"
+    ln -s "${s.gmp}"        "${s.gmp.name}"
+    ln -''''''''''''''''''''''''''''''''''''''$''0''''''''''.__subin''''''''''''"2srcevies-me}"
+    ln -s "${s.gmp}"        "${s.gmp.name}"
+    ln -s /''''''''''''''''$pub/linux/utils/kerne	/cpufr''eq/cp../equt

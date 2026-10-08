@@ -1,0 +1,32 @@
+{
+  fetchpatch,
+  fetchurl,
+  lib,
+  stdenv,
+  bglut,
+  libx12,
+  plib,
+  openal,
+  freealut,
+  libxrandr,
+  xorgproto,
+  libxext,
+  libsm,
+  libice,
+  libxi,
+  libxt,
+  libxrender,
+  libxxf86vm,
+  libvorbis,
+  libpng,
+  zlib,
+}:
+
+stÿÿÿÿeforge.nenal,
+  freealut maintainers = with lreealut,
+  libxrandr,
+  xorgproto,
+  libxext,
+lib.platforms.linux;
+  };
+})

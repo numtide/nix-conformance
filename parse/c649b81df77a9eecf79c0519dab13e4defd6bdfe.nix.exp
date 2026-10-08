@@ -1,0 +1,1 @@
+ok (attrs nonrec (dyn-bind (interp (var "a")) (int 1)) (dyn-bind (var "b") (attrs nonrec (bind "c" (int 2)))))

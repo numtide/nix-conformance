@@ -1,0 +1,51 @@
+-ct --4or.5---  acte0
+     ----4or---j/ --4or.5---4or---j/ --4or.54or---j/ --4or.5---o4-r--j-  acte0
+     ----4or  acte0
+     ----4or---j/ --4or.5--.5---4or---j/ --4or.5ej/ --4or.5---  aktE0
+     ----4or---j/ --4or.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec---j/ --4or.5---4or---j/ --4or.5e-4or---j/ --4or.5---4ro---j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or.5---4or---j/ --4or.5ej/ --4or.5---  acte0
+     ----4or---j/ --4or.5--.5---4or--.5---4or---j/ --4or.54or---j/ --4or.5---o4-r--j-  acte0
+     ----4or  acte0
+     ----4or---j/ --4or.5--.5---4or---j/ --4or.5ej/ --4or.5---  aktE0
+     ----4or---j/ --4or.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec---j/ --4or.5---4or---j/ --4or.5e-4or---j/ --4or.5---4ro---j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or.5---4or---j/ --4or.5ej/ --4or.5---  acte0
+     ----4or---j/ --4or.5--.5---4or---j/ --4or.5ej/ --4or.5r.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec-- --4or.5---4or---j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.5-  acte0
+  .5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec-- --4or.5---4or---j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.4-  acte0
+ ---j/ --4or.5---4or---j/ --4or.54or---j/ --4or.5---o4-r--j-  acte0
+     ----4or  acte0
+     ----4or---j/ --4or.5--.5---4or---j/ --4or.5ej/ --4or.5---  aktE0
+     ----4or---j/ --4or.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec---j/ --4or.5---4or---j/ --4or.5e-4or---j/ --4or.5----j/ --4or.5ej/ --4or.5r.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec-- --4or.5---4or---j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.5-  acte0
+  .5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec-- --4or.5---4or---j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.4-  acte0
+ ---j/ --4or.5---4or---j/ --4or.54or---j/ --4or.5---o4-r--j-  acte0
+     ----4or  acte0
+     ----4or---j/ --4or.5--.5---4or---j/ --4or.5ej/ --4or.5---  aktE0
+     ----4or---j/ --4or.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec---j/ --4oj-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0
+     ----rec---j/ --4or.5---4or---j/ --4or.5e-4or---j/ --4or.5----j/ --4or.5ej/ --4or.5r.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5---4or---j/ --8or.5ej/ --4or.5---  acte0r.5---4or---j/ --4or.5e-4or---j/ --4or.5---4ro---j/ --4or.5ej/ G-4or.5-  acte0
+     ----4or---j/ --4or-j/ --4or.5ej/ --4or.5-  acte0
+     ----4or---j/ --4or.5---4or---j/ --4or.5ej/ --4or.5---  acte0
+     ----4or---j/ --4or.5--.5---4or---j/ --4or.5ej/ --4or.5r.5---o4-r--j-  acte0
+     ----4or---j/ --4or.5    ----4or---j/ --4or.5--{ lib -4o}r---j

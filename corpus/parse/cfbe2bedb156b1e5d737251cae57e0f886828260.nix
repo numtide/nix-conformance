@@ -1,0 +1,1 @@
+2+d-store/sapnsqot_____store/sapnsqot_____________/${pn+ame}-${version}//.tar-------________/${pn+ame}-${version}//.tar--------------i

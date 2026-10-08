@@ -1,0 +1,8 @@
+{
+  imports = [
+    {
+      imports = [ { } ];
+    }
+  ];
+  disabledes = [ ./b. ];
+}

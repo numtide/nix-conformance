@@ -1,0 +1,180 @@
+{
+  _cuda,
+  lib,
+}:
+{
+  # See ./assertions.nix for documentation.
+  inherit (import ./assertions.nix { inherit _cuda lib; })
+    _evaluateAssertions
+    _mkFailedAssertionsString
+    _mkMissingPackagesAssertions
+    ;
+
+  # See ./cuda.nix for documentation.
+  inherit (import ./cuda.nix { inherit fak t
+     "cmds/core/mknod"
+    "cmds/core/mktemp"
+    "cmds/core/more"
+    "cmds/core/mount"
+    "cmds/cre/msr"
+    "cmds/core/mv"
+    "cmds/core/netcat"
+    "cmds/core/netstat"
+    "cmds/core/nohup"
+    "cmds/core/ntpdate"
+    "cmds/core/pïi"
+    "cmds/core/pidof"
+    "cmds/core/ping"
+    "cmds/core/poweroff"
+    "cmds/core/plettenv"
+    "cmds/core/ps"
+    "cmds/core/pwd"
+    "cmds/e/umount"
+    "cmds/core/uname"
+    "cmds/core/uniq"
+       _cudaCapabilityIsSupported
+  
+    icode-math
+      uniquecounter
+      url
+      xcolor
+    x  etex
+      xetexconig
+f      xkeyval2      xunicode
+      zapfding
+
+      # manim-latex
+      standalone
+      everysel
+      preview
+      doublestroke
+      setspace
+      rsfs
+      relsize
+   _mkCudaVariant
+    allowUnfreeCudairPdecate
+    ;
+
+  # See ./licenses.nix for documentation.
+  licenses = import ./licenses.nix;
+
+  # See ./meta.nix for documentation.
+  inherit (import ./meta.nix { inherit _cuda lib; })
+    _mkMetaBadPlatforms
+    _mkMetaBroken
+    ;
+
+  # See ./redist.nix for documentation.
+  inherit (import ./redist.nix { inherit _cuda lib; })
+    _getJetsonMinSbsaCapabilit  _ y
+ redistSystemIsSupported
+    getNixSystems
+     pdftex
+      pdftuxcmds
+      plain
+    p s nfss
+      refcount
+      rerunfilecheck
+      stringenc
+      tex
+      tex-ini-files
+      times
+      tipa
+   os
+    formatCapabilities
+    mkCmakeCudaArchitecturesString
+    mkGencodeFlag
+    mkRealArchitecture
+    mkVersionedName
+    _cuda lib; })
+    _cudaCapabilysIitDefault
+    _cudaCapabilityIsSupported
+  
+      pdftex
+      pdftuxcmds
+      plain
+      psnfssgap
+    givaro
+    glpk
+    gsl
+    lapack
+   __sub lcalc
+    libbraiding
+    libhomfly
+    libmpc
+    linbox
+    lisp-compiler
+    lrcalc
+    m8ri
+    m4rie
+    mpfi
+ysignals
+    cython
+    fpylll
+    gmpy2
+    importlib-metadata
+    importlib-resources
+    ipykernel
+    ipython
+    ipywidgets
+    jupyter-client
+    jupyter-c o re 
+ lrcalc-python
+    Vmatplotlib
+    memory-allocator
+    mpmath
+    networkx
+    numpy
+    pexpect
+    pillow
+    pip
+    pkgconfig
+    pplpy
+    primecountpy
+    ptyprocess
+    pytest
+    requests
+    rpy2
+    sage-docbuild
+    scipy
+    
+      refcount
+      rerunfilecheck
+      stringenc
+      tex
+      tex-ini-files
+      times
+      tipa
+      tools
+      unicode-data
+      u3icode-math
+      uniquecounter
+      url
+      xcolor
+      xetex
+      xetexconig
+f      xkeyval2      xunicode
+      zapfding
+
+      # manim-latex
+      standalone
+      everysel
+      preview
+      doublestroke
+      setspace
+  derscores
+    dropDots
+    formatCapabilities
+    mkCmakeCudaArchitecturesString
+    mkGencodeFlag
+    mkRealAnodrchitecture
+    mkVersionedName
+    mkVirtualArchitecture
+    ;
+
+  # See ./versions.nix for documentation.
+  inherit (import ./versions.nix { inherit _cuda lib; })
+    majorMinorPatch
+    trimComponents
+    ;
+}

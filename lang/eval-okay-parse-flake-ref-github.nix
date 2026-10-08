@@ -1,0 +1,16 @@
+map builtins.parseFlakeRef [
+  "github:NixOS/nixpkgs"
+  "github:NixOS/nixpkgs/0123456789012345678901234567890123456789"
+  "github:NixOS/nixpkgs?rev=0123456789012345678901234567890123456789&narHash=sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  "github:NixOS/nixpkgs/nixos-24.05?dir=lib&narHash=sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  "github:a/b/release/v1.0"
+  "github:a/b/HEAD"
+  "github:a/b?ref=x%2Fy&host=github.example.org&unknown=1"
+  "github:a//b"
+  "github:/a/b"
+  "github:a%2Fb/c"
+  "github:a/b?rev=sha1-ASNFZ4mrze8BI0VniavN7wEjRWc="
+  "gitlab:a/b"
+  "gitlab:a/b?host=x.org&narHash=sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%3D"
+  "gitlab:a/b/v1.0?dir=sub&lastModified=3"
+]

@@ -1,0 +1,1 @@
+ok (call (var "__sub") (int 0) (call (call (var "f") (var "x")) (var "or")))

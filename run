@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+# The nix-conformance runner. See README.md for the adapter protocol and
+# SPEC.md for the answers.
+set -uo pipefail
+
+usage() {
+  cat <<'EOF'
+usage: run [--json] [--tree] [--known FILE] [--against REFERENCE] ADAPTER [PATH...]
+
+Runs the cases under PATH (default: lang parse nar) through ADAPTER and
+compares its answers with the expected ones.
+
+  --tree               compare parse trees too, not only accept/refuse and
+                       the position of a refusal
+  --against REFERENCE  no expected files: compare ADAPTER with REFERENCE on
+                       every file under PATH (for corpus/)
+  --known FILE         the cases (one path a line, # comments) this
+                       implementation fails on purpose: their failure is
+                       counted as known, and their passing as a failure
+  --json               one JSON object per failure, then a summary
+
+Exit 0: every case passed or was skipped; 1: a case failed; 2: bad usage.
+EOF
+}
+
+json=0 tree=0 against="" known=""
+while [[ $# -gt 0 && $1 == -* ]]; do
+  case $1 in
+    --json) json=1 ;;
+    --tree) tree=1 ;;
+    --against) against=$2; shift ;;
+    --known) known=$(realpath "$2"); shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "run: unknown flag $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+[[ $# -ge 1 ]] || { usage >&2; exit 2; }
+adapter=$(realpath "$1"); shift
+[[ -x $adapter ]] || { echo "run: $adapter is not executable" >&2; exit 2; }
+[[ -z $against ]] || against=$(realpath "$against")
+root=$(cd "$(dirname "$0")" && pwd)
+cd "$root" || exit 2
+paths=("$@")
+[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar)
+
+pass=0 fail=0 skip=0 knew=0
+declare -A listed=()
+if [[ -n $known ]]; then
+  while read -r line; do
+    line=${line%%#*}; line=${line//[[:space:]]/}
+    [[ -n $line ]] && listed[$line]=1
+  done < "$known"
+fi
+
+esc() { local s=${1//\\/\\\\}; s=${s//\"/\\\"}; s=${s//$'\n'/\\n}; s=${s//$'\t'/\\t}; printf '%s' "$s"; }
+
+report() { # status case want got
+  local status=$1
+  if [[ -n ${listed[$2]:-} ]]; then
+    case $status in
+      fail) status=known ;;
+      pass) status=fail; set -- fail "$2" "a failure (it is in --known)" "a pass: remove it from the list" ;;
+    esac
+  fi
+  case $status in
+    pass) pass=$((pass + 1)); return ;;
+    known) knew=$((knew + 1)); return ;;
+    skip) skip=$((skip + 1)) ;;
+    fail) fail=$((fail + 1)) ;;
+  esac
+  if [[ $json == 1 ]]; then
+    printf '{"status":"%s","case":"%s","want":"%s","got":"%s"}\n' "$status" "$(esc "$2")" "$(esc "$3")" "$(esc "$4")"
+  elif [[ $status == fail ]]; then
+    printf 'FAIL %s\n  want: %s\n  got:  %s\n' "$2" "${3:0:300}" "${4:0:300}"
+  else
+    printf 'SKIP %s\n' "$2"
+  fi
+}
+
+# The answer of `adapter` on one request; exit 3 from an adapter is "this
+# implementation does not do that", which skips the case.
+ask() { # adapter op file [flags...]
+  local out code
+  out=$("$@" 2>/dev/null)
+  code=$?
+  [[ $code == 3 ]] && { echo SKIP; return; }
+  printf '%s\n' "${out//$root//pwd}"
+  return $code
+}
+
+# without --tree, a parse answer is compared as `ok` or `error LINE:COL`
+shape() { if [[ $tree == 0 && $1 == ok* ]]; then echo ok; else echo "$1"; fi; }
+
+lang_case() { # file
+  local f=$1 base=${1%.nix} name flags=() got code
+  name=$(basename "$base")
+  [[ -e $base.flags ]] && read -r -a flags < <(sed -e 's/#.*//' "$base.flags")
+  case $name in
+    eval-okay-*)
+      [[ -e $base.exp-disabled ]] && return
+      if [[ -e $base.exp.xml ]]; then
+        got=$(ask "$adapter" eval-xml "$f" "${flags[@]}"); code=$?
+        [[ $got == SKIP ]] && { report skip "$f" "" ""; return; }
+        [[ $code == 0 && $got == "$(cat "$base.exp.xml")" ]] && report pass "$f" || report fail "$f" "$(cat "$base.exp.xml")" "$got"
+      else
+        got=$(ask "$adapter" eval "$f" "${flags[@]}"); code=$?
+        [[ $got == SKIP ]] && { report skip "$f" "" ""; return; }
+        [[ $code == 0 && $got == "$(cat "$base.exp")" ]] && report pass "$f" || report fail "$f" "$(cat "$base.exp")" "$got (exit $code)"
+      fi ;;
+    eval-fail-*)
+      got=$(ask "$adapter" eval "$f" "${flags[@]}"); code=$?
+      [[ $got == SKIP ]] && { report skip "$f" "" ""; return; }
+      [[ $code != 0 ]] && report pass "$f" || report fail "$f" "an error" "$got" ;;
+    parse-okay-*|parse-fail-*)
+      got=$(ask "$adapter" check "$f"); code=$?
+      [[ $got == SKIP ]] && { report skip "$f" "" ""; return; }
+      if [[ $name == parse-okay-* ]]; then
+        [[ $code == 0 ]] && report pass "$f" || report fail "$f" "accepted" "refused: $got"
+      else
+        [[ $code != 0 ]] && report pass "$f" || report fail "$f" "refused" "accepted"
+      fi ;;
+  esac
+}
+
+expected_case() { # op file expected-file
+  local got code want
+  got=$(ask "$adapter" "$1" "$2"); code=$?
+  [[ $got == SKIP ]] && { report skip "$2" "" ""; return; }
+  want=$(cat "$3")
+  if [[ $1 == parse ]]; then got=$(shape "$got"); want=$(shape "$want"); fi
+  [[ $code == 0 && $got == "$want" ]] && report pass "$2" || report fail "$2" "$want" "$got"
+}
+
+differential() { # op file
+  local got want code
+  want=$(ask "$against" "$1" "$2")
+  got=$(ask "$adapter" "$1" "$2"); code=$?
+  [[ $got == SKIP || $want == SKIP ]] && { report skip "$2" "" ""; return; }
+  if [[ $1 == parse ]]; then got=$(shape "$got"); want=$(shape "$want"); fi
+  [[ $code == 0 && $got == "$want" ]] && report pass "$2" || report fail "$2" "$want" "$got"
+}
+
+op_of() { # path: parse or nar, from the top directory
+  case $1 in
+    parse/*|corpus/parse/*) echo parse ;;
+    nar/*|corpus/nar/*) echo nar ;;
+    *) echo "" ;;
+  esac
+}
+
+# the environment of Nix's own lang.sh and of its test nix.conf (common/init.sh)
+export NIX_PATH=lang/dir3:lang/dir4 HOME=/fake-home TEST_VAR=foo
+export NIX_CONFIG="experimental-features = nix-command flakes"
+
+while IFS= read -r -d '' f; do
+  case $f in
+    lang/*/*) ;;
+    lang/*.nix) lang_case "$f" ;;
+    *.exp|*.md) ;;
+    *)
+      op=$(op_of "$f")
+      [[ -n $op ]] || continue
+      if [[ -n $against ]]; then
+        differential "$op" "$f"
+      elif [[ -e $f.exp ]]; then
+        expected_case "$op" "$f" "$f.exp"
+      fi ;;
+  esac
+done < <(find "${paths[@]}" -type f -print0 | sort -z)
+
+if [[ $json == 1 ]]; then
+  printf '{"summary":{"pass":%d,"fail":%d,"known":%d,"skip":%d}}\n' $pass $fail $knew $skip
+else
+  printf '%d passed, %d failed, %d known, %d skipped\n' $pass $fail $knew $skip >&2
+fi
+[[ $fail == 0 ]]

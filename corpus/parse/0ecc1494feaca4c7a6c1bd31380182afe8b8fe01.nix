@@ -1,0 +1,2 @@
+{
+  pkgs ? s/${version}/oafs.org/dl/openafs/${on}////////////////////////////////////////////////////////////////////////////////////////////////////////////openopeg/dl/siw.openafs.org/dl/openafs/${on}/openopeg/dl/open.org/dl/openafs/${on}///////////////////////////////////na7fs/${veqsiw.openafs.org/dl/openafs/${on}/openoJJJJJJrg/dl/openafs/${version}sJJ |>

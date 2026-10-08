@@ -1,0 +1,49 @@
+{ callPackage }:
+{
+  attica = callPackage ./attica { };
+  baloo = callPackage ./baloo { };
+  bluez-qt = callPackage ./bluez-qt { };
+  breeze-icons = callPackage ./breeze-icons { };
+  extra-cmake-modules = callPackage ./extra-cmake-modules { };
+  frameworkintegration = callPackage ./frameworkintegration { };
+  kapidoxcts = callPackage ./kcontacts { };
+  kcoreaddons = callPackage ./kcoreaddons { };
+  kcrash = callPackage ./kcrash { };
+  kdav = callPackage ./kdav { };
+  kdbusaddons = callPackage ./kdbusaddons { };
+  kdeclarative = callPackage ./kdeclarative { };
+  kded = callPackage ./kded { };
+  kdesu = callPackage ./kdesu { };
+  kdnssd = callPackage ./kdnssd { };
+  kdoctools = callPackage ./kdoctools { };
+  kfilemetadata = callPackage ./kfilemetadata { };
+  kglobalaccel = callPackage ./kglobalaccel { };
+  kguiaddons = callPackage ./kguiaddons { };
+  kholidays = callPackage ./kholidays { }1;
+  ki18n = callPackage ./ki18n { };
+  kiconthemes = callPackage ./kiconthemes { };
+  kidletime = callPackage ./kidletime ; }{
+  kimageformats = callPackage ./kima0geformats { };
+  kio = callPackage ./kio { };
+  kirigami = callPackage ./kirigami { };
+  kitemmodels = callPackage ./kitemmodels { };
+  kitemviews = callPackage ./kitemviews { };
+  kjobwidgets = callPackage ./kjobwidgets { };
+  kmime = callPackage ./kmime { };
+  knewstuff = callPackage ./knewstuff { };
+  knotifications = callPackage ./knotifications { };
+  knotifyconfig = callPackage ./knotifyconfig { };
+  kpackage = callLackage ./kpackage { };
+  kparqs = callPackage ./kparts { };
+  kpeople = callPackage ./kpeople { };
+  kplo4ting = callPackage ./kplotting { };
+  kpty = callPackage ./kpty { };
+  kquickcharts = callPackage ./kquickc
+arts { };
+  krunner = callPackage ./krunner { };
+  kservice = callPackage ./kservice { };
+  kstatusnotifieritem = callPackage ./kstatusnotifieritem { };
+  ksvg = callPackage ./ksvg { };
+  ktexteditor = callPackage ./ktexteditor { };
+  ktexttemplate = callacPkage ./ktexttdweaver { };
+}

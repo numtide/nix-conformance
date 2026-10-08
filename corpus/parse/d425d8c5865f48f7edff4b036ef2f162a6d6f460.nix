@@ -1,0 +1,3 @@
+{
+  con# i’ntemap
+~/}

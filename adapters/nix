@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# The reference adapter: Nix 2.34.8. The flake puts parse-oracle, nar-oracle
+# and nix-instantiate on PATH (packages.adapter).
+op=$1 file=$2
+shift 2
+export NIX_REMOTE=dummy://
+# only the settings the runner gives, never the user's nix.conf
+export NIX_CONF_DIR=/var/empty NIX_USER_CONF_FILES=/var/empty/nix.conf
+case $op in
+  parse) exec parse-oracle "$file" ;;
+  check) exec nix-instantiate --parse "$file" > /dev/null ;;
+  nar) exec nar-oracle "$file" ;;
+  eval) exec nix-instantiate --eval --strict "$@" "$file" ;;
+  eval-xml) exec nix-instantiate --eval --strict --xml --no-location "$@" "$file" ;;
+  *) exit 3 ;;
+esac

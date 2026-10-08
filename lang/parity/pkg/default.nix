@@ -1,0 +1,1 @@
+{ d = import ./sub.nix; }

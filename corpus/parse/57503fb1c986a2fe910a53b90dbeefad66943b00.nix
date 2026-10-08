@@ -1,0 +1,1 @@
+1 # ieo # iets: a|low f # iets:							чь														w f # iets:							чь														/ f # яal1 # iets: a|low f #  a|lo # iets: a|low f # iets:							чь														w f # iets:							чь								oo
