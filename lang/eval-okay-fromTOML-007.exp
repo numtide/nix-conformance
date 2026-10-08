@@ -1,0 +1,1 @@
+{ d = "a = inf\nb = -inf\nc = +inf"; v = { a = inf; b = -inf; c = inf; }; }

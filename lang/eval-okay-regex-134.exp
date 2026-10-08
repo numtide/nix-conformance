@@ -1,0 +1,1 @@
+{ m = { ok = [ "ab" "cd" ]; }; re = "([[:alnum:]]*)-([[:alnum:]]*)"; s = "ab-cd"; sp = { ok = [ "" [ "ab" "cd" ] "" ]; }; }

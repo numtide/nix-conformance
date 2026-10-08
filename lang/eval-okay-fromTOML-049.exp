@@ -1,0 +1,1 @@
+{ d = "'literal key' = 1"; v = { "literal key" = 1; }; }

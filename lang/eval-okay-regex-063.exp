@@ -1,0 +1,1 @@
+{ m = { ok = [ "a" "a" null "d" null "d" ]; }; re = "((a)|(b))((c)|(d))"; s = "ad"; sp = { ok = [ "" [ "a" "a" null "d" null "d" ] "" ]; }; }

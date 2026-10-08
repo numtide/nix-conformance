@@ -1,0 +1,1 @@
+{ m = { ok = [ "abc" ]; }; re = "(a|abc)d*"; s = "abc"; sp = { ok = [ "" [ "abc" ] "" ]; }; }

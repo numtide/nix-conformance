@@ -1,0 +1,1 @@
+{ d = "a = 'literal \\n not escaped'"; v = { a = "literal \\n not escaped"; }; }

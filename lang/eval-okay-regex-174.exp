@@ -1,0 +1,1 @@
+{ m = { ok = [ null "bar" ]; }; re = "(foo)?(bar)?"; s = "bar"; sp = { ok = [ "" [ null "bar" ] "" [ null null ] "" ]; }; }

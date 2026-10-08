@@ -1,0 +1,1 @@
+{ m = { ok = [ null "xy" ]; }; re = "(x){0,1}(xy)?"; s = "xy"; sp = { ok = [ "" [ "x" null ] "" [ null null ] "y" [ null null ] "" ]; }; }

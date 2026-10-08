@@ -1,0 +1,1 @@
+{ m = { ok = null; }; re = "(x*)(xy)?"; s = "xyz"; sp = { ok = [ "" [ "x" null ] "" [ "" null ] "y" [ "" null ] "z" [ "" null ] "" ]; }; }

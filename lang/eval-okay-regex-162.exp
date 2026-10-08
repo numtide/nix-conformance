@@ -1,0 +1,1 @@
+{ m = { ok = null; }; re = "[[:space:]]+"; s = "a  b\tc"; sp = { ok = [ "a" [ ] "b" [ ] "c" ]; }; }
