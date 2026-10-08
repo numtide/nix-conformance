@@ -149,16 +149,19 @@ std::string concat(const ExprConcatStrings * x)
 }
 
 // `-1` is a call of `__sub` on 0 and a literal: shown as the literal, from
-// the inside out, so `- -1` is `(int 1)`.
+// the inside out, so `- -1` is `(int 1)`. Each argument is shown once: a
+// chain of `-` would cost twice as much at every level otherwise.
 std::string call(const ExprCall * x)
 {
     auto & args = *x->args;
+    std::vector<std::string> shown;
+    for (auto a : args)
+        shown.push_back(show(a));
     size_t skip = 0;
     std::string head;
     auto f = dynamic_cast<const ExprVar *>(x->fun);
-    auto zero = args.size() >= 2 ? dynamic_cast<const ExprInt *>(args[0]) : nullptr;
-    if (f && name(f->name) == "__sub" && zero && zero->v.integer().value == 0) {
-        auto lit = show(args[1]);
+    if (f && name(f->name) == "__sub" && args.size() >= 2 && shown[0] == "(int 0)") {
+        auto & lit = shown[1];
         if (lit.starts_with("(int ")) {
             auto n = std::stoll(lit.substr(5));
             head = "(int " + std::to_string((int64_t) (0ULL - (uint64_t) n)) + ")";
@@ -173,7 +176,7 @@ std::string call(const ExprCall * x)
         return head;
     std::string o = "(call " + (skip ? head : show(x->fun));
     for (size_t i = skip; i < args.size(); i++)
-        o += " " + show(args[i]);
+        o += " " + shown[i];
     return o + ")";
 }
 
