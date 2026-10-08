@@ -1,0 +1,1 @@
+Derive([("out","/nix/store/r3jmsyzfprpqslfcczc5447hysqzw8jl-u1","","")],[],[],"x","/bin/sh",[],[("a","aÿb€"),("builder","/bin/sh"),("name","u1"),("out","/nix/store/r3jmsyzfprpqslfcczc5447hysqzw8jl-u1"),("system","x")])

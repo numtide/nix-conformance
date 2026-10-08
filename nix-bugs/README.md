@@ -35,3 +35,12 @@ nix-instantiate --parse - < nix-bugs/nul-position/input.nix  # at «stdin»:1:9 
 
 The file is `{me#a<NUL>b<newline>/`: the NUL is inside a comment, so it
 does not end the input.
+
+## Nix after 2.34.8 cannot read some of its own `.drv` files
+
+Not a bug of 2.34.8, which is right here: a regression on Nix master
+(2.36pre, 203f85b2). `StringViewStream::get()` (`src/libstore/aterm.cc`,
+since 69b449fe5) returns a signed `char`, so the byte 0xFF compares equal
+to EOF, and a `.drv` with that byte in a string is "unterminated string
+in derivation". The files are `drv/*.drv`: Nix 2.34.8 writes and reads
+them.
