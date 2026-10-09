@@ -12,11 +12,11 @@ prints with the expected answer.
 
 | Path | What | Expected answer |
 |:---|:---|:---|
-| `lang/` | Nix's own language tests (`tests/functional/lang` of Nix 2.34.8), plus more cases in the same layout; `eval-*-regex-*` and `eval-*-fromTOML-*` take one entry each of `lang/corpora/` | `eval-okay-*.exp`, or failure for `eval-fail-*`; acceptance or refusal for `parse-*` |
+| `lang/` | Nix's own language tests (`tests/functional/lang` of Nix 2.34.8), plus more cases in the same layout; `eval-*-regex-*` and `eval-*-fromTOML-*` take one entry each of `lang/corpora/`, except the two in `nix-bugs/regex-char-sign/` | `eval-okay-*.exp`, or failure for `eval-fail-*`; acceptance or refusal for `parse-*` |
 | `parse/` | Nix source found by differential fuzzing | `FILE.exp`: `ok TREE` or `error LINE:COL` |
 | `nar/` | NARs found by differential fuzzing | `FILE.exp`: `ok CONSUMED SHA256` or `error` |
 | `corpus/parse/`, `corpus/nar/` | grown fuzz corpora: 3,665 sources, 258 NARs | none: compare with the reference (`--against`) |
-| `nix-bugs/` | inputs on which Nix 2.34.8 itself fails | none; see `nix-bugs/README.md` |
+| `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
 | `drv/` | `.drv` files for a derivation target, not run yet | their names; see `drv/README.md` |
 | `oracle/`, `adapters/nix` | the reference adapter | |
 

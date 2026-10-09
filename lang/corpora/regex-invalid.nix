@@ -45,7 +45,7 @@
   "[a-[.c.]]"
   "[[=a=]-c]"
   "[[:alpha]]"
-  "[a-é]"
+  "[a-é]" # rejected on x86_64 only: see nix-bugs/regex-char-sign
   "[]"
   "[^]"
 ]
