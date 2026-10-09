@@ -44,3 +44,20 @@ since 69b449fe5) returns a signed `char`, so the byte 0xFF compares equal
 to EOF, and a `.drv` with that byte in a string is "unterminated string
 in derivation". The files are `drv/*.drv`: Nix 2.34.8 writes and reads
 them.
+
+## `daemon-client/`: a daemon's reply that crashes Nix's client
+
+Each file is the daemon's side of a conversation: serve it on a socket and
+point a client at it.
+
+```sh
+socat UNIX-LISTEN:/tmp/d.sock,fork SYSTEM:'cat nix-bugs/daemon-client/FILE; sleep 1' &
+nix --extra-experimental-features nix-command store info --store unix:///tmp/d.sock
+```
+
+| File | What the daemon sends | Nix 2.34.8 |
+|:---|:---|:---|
+| `log-line-without-fields.bin` | a `STDERR_RESULT` of type 101 (a build log line) with no fields | `nix` aborts on `assert(n < fields.size())`; a client with the plain logger (`SimpleLogger::result`, `src/libutil/logging.cc`) reads `fields[0]` and segfaults |
+| `error-of-another-type.bin` | a `STDERR_ERROR` whose type string is not `Error` | `readError` (`src/libutil/serialise.cc`) asserts `type == "Error"`: Nix aborts |
+
+A client should refuse both replies with an error. iets does.

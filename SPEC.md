@@ -92,3 +92,21 @@ The conventions of Nix's own test runner, `tests/functional/lang.sh`:
 - `parse-okay-NAME.nix`, `parse-fail-NAME.nix`: `check` must accept or
   refuse. A refusal includes an undefined variable. `NAME.exp` holds
   Nix's own printing of the tree and is not compared.
+
+## `wire`
+
+Not run by `run` yet: the worker-protocol reference is `wire-oracle`, which
+the fuzzers of iets drive. It is Nix 2.34.8's `RemoteStore` against a
+daemon at a Unix socket, one operation per request. The answer is one line:
+
+| Operation | Answer |
+|:---|:---|
+| `connect` | `ok minor=M version=V trusted=yes\|no\|unknown` |
+| `path-info PATH` | `none`, or `info deriver=D nar=H refs=R time=T size=S ultimate=0\|1 sigs=G ca=C` |
+| `valid-paths PATH...` | `paths P` |
+| `missing DERIVED...` | `missing build=B subst=S unknown=U download=N nar=N` |
+| `output-map DRV` | `outputs NAME=PATH\|-,...` |
+| `substitutable PATH...` | `subst P` |
+
+A list is sorted and joined with `,`. `nar` is base16 without the
+algorithm. Any reply the client refuses is `error`.
