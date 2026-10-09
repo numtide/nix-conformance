@@ -67,3 +67,17 @@ nix --extra-experimental-features nix-command store info --store unix:///tmp/d.s
 | `empty-store-path.bin` | a `QueryPathInfo` reply with the empty string as a reference | `canonPath` (`src/libutil/file-system.cc`) asserts `!path.empty()` while it parses the store path: `nix path-info` aborts. The fuzzer saw the same in the replies of `QueryValidPaths`, `QueryMissing` and `QuerySubstitutablePathInfos` |
 
 A client should not crash on any of these replies. iets does not.
+
+## `drv-round-trip/`: a `.drv` that Nix reads but writes in a form it cannot read
+
+`Derivation::unparse` (`src/libstore/derivations.cc`) writes the output
+names of an input derivation with `printUnquotedStrings`: no escapes. The
+parser reads them with escapes. A name that holds `"` then comes back
+broken. `quote-in-input-output.drv` uses the output `a"b` of its input,
+written `["a\"b"]`. Nix 2.34.8 reads it and writes `["a"b"]`, which it
+then refuses. `nix eval` cannot make such a name, so only a `.drv`
+written by hand has one. `drv-oracle` shows both steps:
+
+```sh
+drv-oracle nix-bugs/drv-round-trip/quote-in-input-output.drv   # ok ...
+```
