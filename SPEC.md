@@ -133,3 +133,19 @@ reply the client refuses is `error`.
 A `unix://` store of Nix reads a NAR from the file system, not with
 `NarFromPath`; `nar` calls `RemoteStore::narFromPath`, as an `ssh-ng://`
 store does.
+
+## `eval`
+
+Not run by `run`: the evaluation reference is `eval-oracle`, which the
+fuzzers of iets drive. The input is an expression, evaluated as a string
+in `/case` in pure mode, with no store (`dummy://`). The value is forced
+deeply. The answer is `ok VALUE`, with VALUE as
+`nix-instantiate --eval --strict` prints it, `«repeated»` included, or
+`error` for any error. The message is not part of the answer.
+
+`==` on two sets compares their attributes in symbol order, the order in
+which the evaluator first saw each name, and stops at the first
+difference. Which of a different and a failing attribute it reaches first
+is therefore not part of the language. The oracle keeps its symbols from
+one expression to the next, so a fuzzer that wants one answer for such
+an expression names the attributes first, in one order.

@@ -80,9 +80,9 @@ checks.conformance = nix-conformance.lib.${system}.check {
 };
 ```
 
-`packages.oracles` gives the reference as two servers for a fuzzer
-(`parse-oracle` and `nar-oracle` without arguments; frames in their
-headers).
+`packages.oracles` gives the reference as servers for a fuzzer: each
+`*-oracle`, run without arguments, reads and writes the frames its
+header describes.
 
 ## Add cases
 
