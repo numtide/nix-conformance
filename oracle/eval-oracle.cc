@@ -5,14 +5,17 @@
 //   eval-oracle           a server for fuzzers: frames on stdin and stdout
 //
 // Server frames: request u32 length (little endian), then the source.
-// Reply u8 kind (0 value, 1 error), u32 length, then the value or the error
-// message.
+// Reply u8 kind (0 value, 1 error, 2 error after which the server exits),
+// u32 length, then the value or the error message. Kind 2 is a stack
+// overflow: `nix-instantiate` stops with an error there and cannot go on
+// either (detectStackOverflow, src/libmain/unix/stack.cc).
 
 #include <nix/expr/eval.hh>
 #include <nix/expr/eval-gc.hh>
 #include <nix/expr/eval-settings.hh>
 #include <nix/expr/print-ambiguous.hh>
 #include <nix/fetchers/fetch-settings.hh>
+#include <nix/main/shared.hh>
 #include <nix/store/globals.hh>
 #include <nix/store/store-open.hh>
 #include <nix/util/current-process.hh>
@@ -94,8 +97,22 @@ void writeAll(const void * buf, size_t n)
     }
 }
 
+bool serving = false;
+
+void overflow(siginfo_t *, void *)
+{
+    static const char frame[] = "\x02\x0e\x00\x00\x00stack overflow";
+    static const char line[] = "error\n";
+    if (serving)
+        writeAll(frame, sizeof frame - 1);
+    else
+        writeAll(line, sizeof line - 1);
+    _exit(1);
+}
+
 void serve(Evaluator & ev)
 {
+    serving = true;
     std::string input;
     while (true) {
         uint32_t len;
@@ -124,6 +141,8 @@ int main(int argc, char ** argv)
     initLibStore(false);
     initGC();
     settings.readOnlyMode = true;
+    detectStackOverflow();
+    stackOverflowHandler = overflow;
     Evaluator ev;
     if (argc == 1) {
         serve(ev);
