@@ -293,12 +293,13 @@ let
     { re = "[[:xdigit:]]+"; s = "fF9"; }
     { re = "[[:cntrl:]]"; s = "\t"; }
 
-    # --- bytes above 0x7f: ranges compare signed chars
+    # --- bytes above 0x7f: ranges compare chars, signed on x86_64 and
+    # unsigned on aarch64
     { re = "."; s = "é"; }
     { re = ".."; s = "é"; }
     { re = "[^a]+"; s = "é"; }
     { re = "[[:alpha:]]+"; s = "é"; }
-    { re = "[é-a]+"; s = "éa"; }
+    { re = "[é-a]+"; s = "éa"; } # no case: see nix-bugs/regex-char-sign
     { re = "[à-ú]+"; s = "éa"; }
     { re = "[é]"; s = "é"; }
 

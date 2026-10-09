@@ -102,3 +102,23 @@ nix-instantiate --eval --read-write-mode --store 'local?root=/tmp/s' nix-bugs/du
 ```
 
 `eval-oracle` therefore uses a local store in a temporary directory.
+
+## `regex-char-sign/`: a regex range gives another answer on aarch64
+
+`builtins.match` and `builtins.split` compile the pattern with
+libstdc++'s `std::regex` over `char` (`src/libexpr/primops.cc`). A
+bracket range compares its ends as `char`, which is signed on x86_64 and
+unsigned on aarch64. A range with one end above 0x7f, such as a byte of a
+UTF-8 `é` (`\303\251`), is then valid on one host and invalid on the
+other. The same expression has two values:
+
+| File | x86_64-linux | aarch64-linux |
+|:---|:---|:---|
+| `range-to-high-byte.nix`, `match "[a-é]" "aaa"` | `invalid regular expression` | `null` |
+| `range-from-high-byte.nix`, `match "[é-a]+" "éa"` | `[ ]` | `invalid regular expression` |
+
+`builtins.split` gives the same split: an error on one host, a value on
+the other. They are entry 43 of `lang/corpora/regex-invalid.nix` and entry
+260 of `lang/corpora/regex.nix`, which have no case in `lang/`. A range
+with both ends above 0x7f (`[à-ú]`) is in the same half on both hosts and
+keeps its case.
