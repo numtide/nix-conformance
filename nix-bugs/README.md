@@ -75,7 +75,8 @@ names of an input derivation with `printUnquotedStrings`: no escapes. The
 parser reads them with escapes. A name that holds `"` then comes back
 broken. `quote-in-input-output.drv` uses the output `a"b` of its input,
 written `["a\"b"]`. Nix 2.34.8 reads it and writes `["a"b"]`, which it
-then refuses. `nix eval` cannot make such a name, so only a `.drv`
+then refuses. Evaluation refuses such an output name, as its path would
+hold `"` (`is not a valid store path`), so only a `.drv`
 written by hand has one. `drv-oracle` shows both steps:
 
 ```sh
