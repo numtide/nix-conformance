@@ -54,6 +54,8 @@ point a client at it.
 socat UNIX-LISTEN:/tmp/d.sock,fork SYSTEM:'cat nix-bugs/daemon-client/FILE; sleep 1' &
 # empty-store-path.bin needs an operation that reads a path info:
 # nix path-info --store unix:///tmp/d.sock /nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-x
+# answer-before-upload.bin needs an upload, of any store path without references:
+# nix copy --to unix:///tmp/d.sock /nix/store/...-source
 nix --extra-experimental-features nix-command store info --store unix:///tmp/d.sock
 ```
 
@@ -61,6 +63,7 @@ nix --extra-experimental-features nix-command store info --store unix:///tmp/d.s
 |:---|:---|:---|
 | `log-line-without-fields.bin` | a `STDERR_RESULT` of type 101 (a build log line) with no fields | `nix` aborts on `assert(n < fields.size())`; a client with the plain logger (`SimpleLogger::result`, `src/libutil/logging.cc`) reads `fields[0]` and segfaults |
 | `error-of-another-type.bin` | a `STDERR_ERROR` whose type string is not `Error` | `readError` (`src/libutil/serialise.cc`) asserts `type == "Error"`: Nix aborts |
+| `answer-before-upload.bin` | `STDERR_LAST` for `AddMultipleToStore` before the client has sent its framed upload | `FramedSink` polls the daemon without blocking while it sends; `processStderrReturn` (`src/libstore/worker-protocol-connection.cc`) asserts `block` when the poll finds `STDERR_LAST`: `nix copy` aborts |
 | `empty-store-path.bin` | a `QueryPathInfo` reply with the empty string as a reference | `canonPath` (`src/libutil/file-system.cc`) asserts `!path.empty()` while it parses the store path: `nix path-info` aborts. The fuzzer saw the same in the replies of `QueryValidPaths`, `QueryMissing` and `QuerySubstitutablePathInfos` |
 
-A client should refuse each of these replies with an error. iets does.
+A client should not crash on any of these replies. iets does not.

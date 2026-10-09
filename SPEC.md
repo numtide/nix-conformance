@@ -118,6 +118,18 @@ daemon at a Unix socket, one operation per request. The answer is one line:
 | `missing DERIVED...` | `missing build=B subst=S unknown=U download=N nar=N` |
 | `output-map DRV` | `outputs NAME=PATH\|-,...` |
 | `substitutable PATH...` | `subst P` |
+| `substitute PATH...` | `paths P`: `QueryValidPaths` with substitution on |
+| `build DERIVED...` | `built`, then for each result a line `PATH status=S`, with ` msg=M` for a failure |
+| `indirect-root PATH` | `ok` |
+| `nar PATH` | `nar SIZE SHA256`: the NAR that `NarFromPath` sent |
+| `add-multiple` | `ok`: `AddMultipleToStore` of no paths |
 
-A list is sorted and joined with `,`. `nar` is base16 without the
-algorithm. Any reply the client refuses is `error`.
+A list is sorted and joined with `,`. `nar` and `SHA256` are base16 without
+the algorithm. In `build`, `PATH` is the derived path as Nix writes it
+(`to_string_legacy`), `S` the wire value of the status
+(`buildResultStatusTable`) and `M` the message as the daemon sent it. Any
+reply the client refuses is `error`.
+
+A `unix://` store of Nix reads a NAR from the file system, not with
+`NarFromPath`; `nar` calls `RemoteStore::narFromPath`, as an `ssh-ng://`
+store does.

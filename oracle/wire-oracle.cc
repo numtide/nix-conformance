@@ -7,15 +7,21 @@
 //                                  length and the line `SOCKET OP ARG...`,
 //                                  replies u32 length and the answer
 //
-// Ops: connect, path-info PATH, valid-paths PATH..., missing DERIVED...,
-// output-map DRV, substitutable PATH...
+// Ops: connect, path-info PATH, valid-paths PATH..., substitute PATH...,
+// missing DERIVED..., output-map DRV, substitutable PATH..., build DERIVED...,
+// indirect-root PATH, nar PATH, add-multiple
 
+#include <nix/store/build-result.hh>
 #include <nix/store/content-address.hh>
 #include <nix/store/derived-path.hh>
 #include <nix/store/globals.hh>
+#include <nix/store/indirect-root-store.hh>
 #include <nix/store/path-info.hh>
+#include <nix/store/remote-store.hh>
 #include <nix/store/store-api.hh>
 #include <nix/store/store-open.hh>
+#include <nix/util/hash.hh>
+#include <nix/util/serialise.hh>
 #include <nix/util/util.hh>
 
 #include <iostream>
@@ -43,6 +49,58 @@ std::string paths(Store & store, const StorePathSet & ps)
         v.push_back(store.printStorePath(p));
     std::sort(v.begin(), v.end());
     return join(v);
+}
+
+// the wire value of a status, common-protocol.cc:buildResultStatusTable
+int wireStatus(const BuildResult & r)
+{
+    using S = BuildResultSuccessStatus;
+    using F = BuildResultFailureStatus;
+    return std::visit(
+        overloaded{
+            [](const BuildResult::Success & s) {
+                switch (s.status) {
+                case S::Built:
+                    return 0;
+                case S::Substituted:
+                    return 1;
+                case S::AlreadyValid:
+                    return 2;
+                case S::ResolvesToAlreadyValid:
+                    return 13;
+                }
+                return -1;
+            },
+            [](const BuildResult::Failure & f) {
+                switch (f.status) {
+                case F::PermanentFailure:
+                    return 3;
+                case F::InputRejected:
+                    return 4;
+                case F::OutputRejected:
+                case F::HashMismatch:
+                    return 5;
+                case F::TransientFailure:
+                    return 6;
+                case F::CachedFailure:
+                    return 7;
+                case F::TimedOut:
+                    return 8;
+                case F::MiscFailure:
+                    return 9;
+                case F::DependencyFailed:
+                    return 10;
+                case F::LogLimitExceeded:
+                    return 11;
+                case F::NotDeterministic:
+                    return 12;
+                case F::NoSubstituters:
+                    return 14;
+                }
+                return -1;
+            },
+        },
+        r.inner);
 }
 
 std::string answer(const std::vector<std::string> & req)
@@ -82,6 +140,42 @@ std::string answer(const std::vector<std::string> & req)
     }
     if (op == "valid-paths")
         return "paths " + paths(*store, store->queryValidPaths(parseAll()));
+    if (op == "substitute")
+        return "paths " + paths(*store, store->queryValidPaths(parseAll(), Substitute));
+    if (op == "build") {
+        std::vector<DerivedPath> targets;
+        for (auto & a : args)
+            targets.push_back(DerivedPath::parseLegacy(*store, a));
+        std::string o = "built";
+        for (auto & r : store->buildPathsWithResults(targets)) {
+            o += "\n" + r.path.to_string_legacy(*store) + " status=" + std::to_string(wireStatus(r));
+            if (auto f = r.tryGetFailure())
+                o += " msg=" + f->message();
+        }
+        return o;
+    }
+    if (op == "indirect-root") {
+        auto & roots = dynamic_cast<IndirectRootStore &>(*store);
+        roots.addIndirectRoot(args.at(0));
+        return "ok";
+    }
+    if (op == "nar") {
+        HashSink sink(HashAlgorithm::SHA256);
+        // a unix:// store reads a NAR from the file system (uds-remote-store.hh);
+        // the operation itself is what an ssh-ng:// store does; the call is
+        // protected, and default.nix builds this file with -fno-access-control
+        auto & remote = dynamic_cast<RemoteStore &>(*store);
+        remote.RemoteStore::narFromPath(store->parseStorePath(args.at(0)), sink);
+        auto [hash, size] = sink.finish();
+        return "nar " + std::to_string(size) + " " + hash.to_string(HashFormat::Base16, false);
+    }
+    if (op == "add-multiple") {
+        // no paths: the count 0 alone
+        std::string count(8, '\0');
+        StringSource body(count);
+        store->addMultipleToStore(body, NoRepair, CheckSigs);
+        return "ok";
+    }
     if (op == "missing") {
         std::vector<DerivedPath> targets;
         for (auto & a : args)
