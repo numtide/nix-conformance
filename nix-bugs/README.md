@@ -82,3 +82,23 @@ written by hand has one. `drv-oracle` shows both steps:
 ```sh
 drv-oracle nix-bugs/drv-round-trip/quote-in-input-output.drv   # ok ...
 ```
+
+## `dummy-store/`: the in-memory store gives a `.drv` no references
+
+`dummy://?read-only=false` keeps the derivations an evaluation writes, but
+`DummyStoreImpl::queryPathInfoUncached` (`src/libstore/dummy-store.cc`)
+makes the path info of a `.drv` with no references. A string with a
+drvPath's context needs the closure of that `.drv`
+(`computeFSClosure`, `prim_derivationStrict` in `src/libexpr/primops.cc`).
+In the dummy store the closure is the `.drv` alone, without its sources
+and input derivations. So the derivation that holds the string gets
+another drvPath than with a real store:
+
+```sh
+nix-instantiate --eval --read-write-mode --store 'dummy://?read-only=false' nix-bugs/dummy-store/drv-closure.nix
+# "/nix/store/a8267370bblkfwik1wfapnhiyhbf330c-a.drv"   (wrong)
+nix-instantiate --eval --read-write-mode --store 'local?root=/tmp/s' nix-bugs/dummy-store/drv-closure.nix
+# "/nix/store/9369pf02wdlz26wmhv5cmx1crgkksqq8-a.drv"   (right)
+```
+
+`eval-oracle` therefore uses a local store in a temporary directory.

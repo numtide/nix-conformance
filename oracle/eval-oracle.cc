@@ -18,6 +18,7 @@
 #include <nix/main/shared.hh>
 #include <nix/store/globals.hh>
 #include <nix/store/store-open.hh>
+#include <nix/util/configuration.hh>
 #include <nix/util/current-process.hh>
 #include <nix/util/file-system.hh>
 #include <nix/util/util.hh>
@@ -33,14 +34,28 @@ namespace {
 
 struct Evaluator
 {
-    ref<Store> store;
+    std::unique_ptr<AutoDelete> root;
+    std::shared_ptr<Store> store;
     fetchers::Settings fetchSettings;
     EvalSettings evalSettings{settings.readOnlyMode};
     std::shared_ptr<EvalState> state;
     size_t served = 0;
 
+    // A real store, in a directory of its own: `derivation` writes its .drv
+    // there as `nix-instantiate` does, and a string with a drvPath's context
+    // takes the .drv's closure from it. `dummy://?read-only=false` gives a
+    // .drv no references (dummy-store.cc, queryPathInfoUncached), so that
+    // closure, and the drvPath, would be wrong.
+    void fresh()
+    {
+        state.reset();
+        store.reset();
+        root = std::make_unique<AutoDelete>(createTempDir("", "eval-oracle"));
+        store = openStore("local?root=" + root->path().string()).get_ptr();
+        state = std::make_shared<EvalState>(LookupPath{}, ref{store}, fetchSettings, evalSettings);
+    }
+
     Evaluator()
-        : store(openStore("dummy://"))
     {
         evalSettings.pureEval = true;
     }
@@ -54,9 +69,9 @@ struct Evaluator
     // SPEC.md: the expression is evaluated as a string in /case
     Answer eval(const std::string & input)
     {
-        // a fresh state now and then: the expression arena only grows
+        // a fresh state and store now and then: both only grow
         if (!state || served++ % 1024 == 0)
-            state = std::make_shared<EvalState>(LookupPath{}, store, fetchSettings, evalSettings);
+            fresh();
         try {
             auto e = state->parseExprFromString(input, state->rootPath(CanonPath("/case")));
             Value v;
@@ -68,6 +83,10 @@ struct Evaluator
             return {true, out.str()};
         } catch (Error & err) {
             return {false, err.msg()};
+        } catch (std::exception & e) {
+            // nlohmann's JSON errors, of `__structuredAttrs` for one:
+            // `nix-instantiate` reports them as errors too (handleExceptions)
+            return {false, e.what()};
         }
     }
 };
@@ -140,7 +159,9 @@ int main(int argc, char ** argv)
     initLibUtil();
     initLibStore(false);
     initGC();
-    settings.readOnlyMode = true;
+    settings.readOnlyMode = false;
+    // SPEC.md: the drvPaths of content-addressed derivations are compared too
+    experimentalFeatureSettings.set("extra-experimental-features", "ca-derivations");
     detectStackOverflow();
     stackOverflowHandler = overflow;
     Evaluator ev;

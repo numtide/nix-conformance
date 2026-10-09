@@ -138,10 +138,14 @@ store does.
 
 Not run by `run`: the evaluation reference is `eval-oracle`, which the
 fuzzers of iets drive. The input is an expression, evaluated as a string
-in `/case` in pure mode, with no store (`dummy://`). The value is forced
-deeply. The answer is `ok VALUE`, with VALUE as
-`nix-instantiate --eval --strict` prints it, `«repeated»` included, or
-`error` for any error. The message is not part of the answer.
+in `/case` in pure mode, with the experimental feature `ca-derivations`
+on and a store of its own in a temporary directory
+(`local?root=DIR`). A `derivation` writes its `.drv` there, as
+`nix-instantiate` does, so a drvPath and the closure of a drvPath's
+context are those of a real store. The value is forced deeply. The
+answer is `ok VALUE`, with VALUE as `nix-instantiate --eval --strict`
+prints it, `«repeated»` included, or `error` for any error, a JSON error
+of `__structuredAttrs` included. The message is not part of the answer.
 
 `==` on two sets compares their attributes in symbol order, the order in
 which the evaluator first saw each name, and stops at the first
