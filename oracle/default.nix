@@ -9,6 +9,7 @@ stdenv.mkDerivation {
     $CXX -std=c++23 -O2 -o parse-oracle ${./parse-oracle.cc} $(pkg-config --cflags --libs nix-expr nix-store nix-fetchers nix-util)
     $CXX -std=c++23 -O2 -o nar-oracle ${./nar-oracle.cc} $(pkg-config --cflags --libs nix-util)
     $CXX -std=c++23 -O2 -o wire-oracle ${./wire-oracle.cc} $(pkg-config --cflags --libs nix-store nix-util)
+    $CXX -std=c++23 -O2 -o drv-oracle ${./drv-oracle.cc} $(pkg-config --cflags --libs nix-store nix-util)
   '';
-  installPhase = "install -Dm755 -t $out/bin parse-oracle nar-oracle wire-oracle";
+  installPhase = "install -Dm755 -t $out/bin parse-oracle nar-oracle wire-oracle drv-oracle";
 }

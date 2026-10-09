@@ -80,6 +80,17 @@ bytes the NAR took (bytes after it are not read), and the SHA-256, in
 lowercase hexadecimal, of the tree written out again as a NAR. For a
 well-formed NAR that is the hash of its own bytes.
 
+## `drv`
+
+Not run by `run` yet: the reference is `drv-oracle`, which the fuzzers of
+iets drive. The input is a `.drv` file, read as the derivation `x` with
+the experimental features `ca-derivations` and `dynamic-derivations` on
+(`parseDerivation`, `src/libstore/derivations.cc`). A refusal is `error`.
+An acceptance is `ok DRVPATH SHA256`: the store path of the derivation,
+and the SHA-256, in lowercase hexadecimal, of the ATerm written again
+(`Derivation::unparse`). For a `.drv` that Nix wrote, that is the hash of
+its own bytes. `drv/` holds real ones.
+
 ## `lang/`
 
 The conventions of Nix's own test runner, `tests/functional/lang.sh`:
