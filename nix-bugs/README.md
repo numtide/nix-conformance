@@ -52,6 +52,8 @@ point a client at it.
 
 ```sh
 socat UNIX-LISTEN:/tmp/d.sock,fork SYSTEM:'cat nix-bugs/daemon-client/FILE; sleep 1' &
+# empty-store-path.bin needs an operation that reads a path info:
+# nix path-info --store unix:///tmp/d.sock /nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-x
 nix --extra-experimental-features nix-command store info --store unix:///tmp/d.sock
 ```
 
@@ -59,5 +61,6 @@ nix --extra-experimental-features nix-command store info --store unix:///tmp/d.s
 |:---|:---|:---|
 | `log-line-without-fields.bin` | a `STDERR_RESULT` of type 101 (a build log line) with no fields | `nix` aborts on `assert(n < fields.size())`; a client with the plain logger (`SimpleLogger::result`, `src/libutil/logging.cc`) reads `fields[0]` and segfaults |
 | `error-of-another-type.bin` | a `STDERR_ERROR` whose type string is not `Error` | `readError` (`src/libutil/serialise.cc`) asserts `type == "Error"`: Nix aborts |
+| `empty-store-path.bin` | a `QueryPathInfo` reply with the empty string as a reference | `canonPath` (`src/libutil/file-system.cc`) asserts `!path.empty()` while it parses the store path: `nix path-info` aborts. The same happens for an empty string in any reply that holds store paths |
 
 A client should refuse both replies with an error. iets does.
