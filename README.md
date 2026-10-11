@@ -18,6 +18,7 @@ prints with the expected answer.
 | `corpus/parse/`, `corpus/nar/` | grown fuzz corpora: 3,665 sources, 258 NARs | none: compare with the reference (`--against`) |
 | `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
 | `drv/` | `.drv` files for a derivation target, not run yet | their names; see `drv/README.md` |
+| `COVERAGE.md` | what the suite does not test yet, ranked | |
 | `oracle/`, `adapters/nix` | the reference adapter | |
 
 `SPEC.md` defines the answers: the tree form, the NAR line and the
