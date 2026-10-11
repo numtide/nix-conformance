@@ -1,0 +1,1 @@
+DrvWithVersion("xp-dyn-drv",[("out","","r:sha256","")],[("/nix/store/00000000000000000000000000000000-a.drv",(["out"],[("out",["lib","out"])]))],[],"x86_64-linux","/bin/sh",[],[])

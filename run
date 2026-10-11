@@ -7,7 +7,7 @@ usage() {
   cat <<'EOF'
 usage: run [--json] [--tree] [--known FILE] [--against REFERENCE] ADAPTER [PATH...]
 
-Runs the cases under PATH (default: lang parse nar) through ADAPTER and
+Runs the cases under PATH (default: lang parse nar drv) through ADAPTER and
 compares its answers with the expected ones.
 
   --tree               compare parse trees too, not only accept/refuse and
@@ -42,7 +42,7 @@ adapter=$(realpath "$1"); shift
 root=$(cd "$(dirname "$0")" && pwd)
 cd "$root" || exit 2
 paths=("$@")
-[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar)
+[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar drv)
 
 pass=0 fail=0 skip=0 knew=0
 declare -A listed=()
@@ -141,10 +141,11 @@ differential() { # op file
   [[ $code == 0 && $got == "$want" ]] && report pass "$2" || report fail "$2" "$want" "$got"
 }
 
-op_of() { # path: parse or nar, from the top directory
+op_of() { # path: parse, nar or drv, from the top directory
   case $1 in
     parse/*|corpus/parse/*) echo parse ;;
     nar/*|corpus/nar/*) echo nar ;;
+    drv/*) echo drv ;;
     *) echo "" ;;
   esac
 }

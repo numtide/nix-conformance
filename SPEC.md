@@ -82,14 +82,25 @@ well-formed NAR that is the hash of its own bytes.
 
 ## `drv`
 
-Not run by `run` yet: the reference is `drv-oracle`, which the fuzzers of
-iets drive. The input is a `.drv` file, read as the derivation `x` with
-the experimental features `ca-derivations` and `dynamic-derivations` on
-(`parseDerivation`, `src/libstore/derivations.cc`). A refusal is `error`.
-An acceptance is `ok DRVPATH SHA256`: the store path of the derivation,
-and the SHA-256, in lowercase hexadecimal, of the ATerm written again
-(`Derivation::unparse`). For a `.drv` that Nix wrote, that is the hash of
-its own bytes. `drv/` holds real ones.
+The input is a `.drv` file. It is read as a derivation with the
+experimental features `ca-derivations`, `dynamic-derivations`,
+`impure-derivations` and `git-hashing` on (`parseDerivation`,
+`src/libstore/derivations.cc`). The derivation's name is the file name
+without `.drv`, and without the 32 characters of a store path hash and
+the `-` after them, when they are there: `abc…-hello.drv` and `hello.drv`
+both name `hello`.
+
+A refusal is `error`. An acceptance is `ok DRVPATH SHA256`: the store
+path of the derivation, and the SHA-256, in lowercase hexadecimal, of the
+ATerm written again (`Derivation::unparse`). Each case in `drv/` that Nix
+accepts is in the form Nix writes, so SHA256 is the hash of the file
+itself: the derivation must come back byte for byte. A file named by its
+store path gives that path as DRVPATH.
+
+Nix 2.34.8 also accepts spellings that the ATerm document of later Nix
+forbids (`doc/manual/source/protocols/derivation-aterm.md`, "Canonical
+form"). These are in `nix-bugs/drv-canonical/`, not in `drv/`: an
+implementation may accept or refuse them.
 
 ## `lang/`
 

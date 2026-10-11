@@ -8,17 +8,21 @@
       tools = pkgs: with pkgs; [ bash coreutils findutils gnused ];
       build = pkgs: rec {
         oracles = pkgs.callPackage ./oracle { };
-        # the reference: Nix 2.34.8 behind the adapter protocol of README.md
-        adapter = pkgs.writeShellScriptBin "nix-conformance-adapter" ''
-          export PATH=${oracles}/bin:${pkgs.nix}/bin:$PATH
+        mkAdapter = name: oracles: nix: pkgs.writeShellScriptBin name ''
+          export PATH=${oracles}/bin:${nix}/bin:$PATH
           exec ${pkgs.bash}/bin/bash ${./adapters/nix} "$@"
         '';
+        # the reference: Nix 2.34.8 behind the adapter protocol of README.md
+        adapter = mkAdapter "nix-conformance-adapter" oracles pkgs.nix;
+        # another Nix, such as a build of its master, as one more implementation
+        adapterFor = nix: mkAdapter "nix-conformance-adapter-${nix.version}"
+          (pkgs.callPackage ./oracle { inherit nix; reference = false; }) nix;
         run = pkgs.writeShellScriptBin "nix-conformance" ''
           export PATH=${pkgs.lib.makeBinPath (tools pkgs)}:$PATH
           exec ${pkgs.bash}/bin/bash ${self}/run "$@"
         '';
         # a check that `adapter` (a program) passes the suites in `paths`
-        check = { name, adapter, paths ? [ "lang" "parse" "nar" ], flags ? [ ] }:
+        check = { name, adapter, paths ? [ "lang" "parse" "nar" "drv" ], flags ? [ ] }:
           pkgs.runCommand "nix-conformance-${name}" { } ''
             ${run}/bin/nix-conformance ${pkgs.lib.escapeShellArgs flags} ${adapter} ${pkgs.lib.escapeShellArgs paths}
             touch $out
@@ -26,7 +30,7 @@
       };
     in {
       packages = forAll (pkgs: { inherit (build pkgs) oracles adapter run; default = (build pkgs).run; });
-      lib = forAll (pkgs: { inherit (build pkgs) check; });
+      lib = forAll (pkgs: { inherit (build pkgs) check adapterFor; });
       # the expected answers are Nix 2.34.8's
       checks = forAll (pkgs: let b = build pkgs; in {
         reference = b.check {
