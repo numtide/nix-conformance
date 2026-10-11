@@ -45,8 +45,9 @@ to EOF, and a `.drv` with that byte in a string is "unterminated string
 in derivation". These are cases in `drv/`, because Nix 2.34.8 writes and
 reads them: through `lib.adapterFor nixVersions.git`, Nix 2.36pre fails
 the six real `.drv` files, the four `bytes/*-all.drv` that hold 0xFF, and
-of the 256 `bytes/env-value-XX.drv` only `env-value-ff`. The fix is
-NixOS/nix#16580.
+of the 256 `bytes/env-value-XX.drv` only `env-value-ff`. NixOS/nix#16580
+proposed a fix and was closed without a merge: Nix master still has the
+bug (2026-10-11).
 
 ## `drv-system-quote/`: evaluation writes a `.drv` that Nix cannot read
 

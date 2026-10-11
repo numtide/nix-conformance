@@ -55,8 +55,9 @@ Rank is by the real bug a gap would catch. Cost is the work to add it.
 **What it catches.** Since `69b449fe5`, Nix master reads the byte 0xFF
 in an ATerm string as end of file (`nix-bugs/README.md`). Nix writes such
 bytes, because `builtins.readFile` does not check them. One such `.drv` in
-a store makes `nix store gc` fail for the whole store. The fix is
-NixOS/nix#16580. All 6 seeds in `drv/` have a 0xFF byte (u6 has it in the
+a store makes `nix store gc` fail for the whole store. NixOS/nix#16580
+proposed a fix and was closed unmerged; master still has the bug
+(2026-10-11). All 6 seeds in `drv/` have a 0xFF byte (u6 has it in the
 system field). Master `81da9300c` still returns a signed `char` from
 `StringViewStream::get()` (`src/libstore/derivation/aterm.cc`), so by
 its code it refuses all 6. Nix 2.36pre (`203f85b2`, `nixVersions.git`)
