@@ -57,7 +57,9 @@ a store makes `nix store gc` fail for the whole store. The fix is
 NixOS/nix#16580. All 6 seeds in `drv/` have a 0xFF byte (u6 has it in the
 system field). Master `81da9300c` still returns a signed `char` from
 `StringViewStream::get()` (`src/libstore/derivation/aterm.cc`), so by
-its code it refuses all 6. I did not run master to confirm this.
+its code it refuses all 6. Nix 2.36pre (`203f85b2`, `nixVersions.git`)
+does refuse all 6: #4 builds this target and runs that Nix through it.
+The same work found three more `.drv` bugs (#4, `nix-bugs/`).
 The target also catches `nix-bugs/drv-round-trip`: Nix 2.34.8 writes a
 `"` in an input output name without its escape, and cannot read it back.
 
