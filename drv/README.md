@@ -29,9 +29,11 @@ to u6 and checks their paths.
   `b` in an env value. Nix 2.36pre (`203f85b2`) fails `env-value-ff` only.
 - `env-value-all`, `env-name-all`, `arg-all`, `builder-all`: all 256 bytes
   in that field.
-- `system-plain`: all bytes but the five that have an escape (`"`, `\`,
-  newline, carriage return, tab). Nix writes the system without escapes
-  (`nix-bugs/drv-system-quote`), so a system with one of them has no
+- `system-utf8`: each ASCII byte but NUL and the five that have an
+  escape (`"`, `\`, newline, carriage return, tab), then `é€😀`. A system
+  names a platform, so it is UTF-8 text; a system that is not is only in
+  the real file u6. Nix writes the system without escapes
+  (`nix-bugs/drv-system-quote`), so a system with one of the five has no
   form that Nix both writes and reads.
 
 ## `shape/`

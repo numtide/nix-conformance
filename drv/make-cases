@@ -23,9 +23,9 @@ byte() {
 lit() { printf '%s' "$1"; }
 one() { lit a; byte "$1"; lit b; }
 every() { for i in {0..255}; do byte "$(printf %02x "$i")"; done; }
-# the platform is written without escapes: the five bytes that have one are
-# not in it (nix-bugs/drv-system-quote)
-plain() { for i in {0..255}; do case $i in 9|10|13|34|92) ;; *) byte "$(printf %02x "$i")" ;; esac; done; }
+# a system is UTF-8 text, and Nix writes it without escapes, so the five
+# bytes that have one are not in it (nix-bugs/drv-system-quote)
+utf8() { for i in {1..127}; do case $i in 9|10|13|34|92) ;; *) byte "$(printf %02x "$i")" ;; esac; done; lit "é€😀"; }
 
 drv() { # file system builder arg env-name env-value: each a command
   local file=$1 name
@@ -45,7 +45,7 @@ drv bytes/env-value-all.drv "$d" "$b" "$a" "$n" every
 drv bytes/env-name-all.drv "$d" "$b" "$a" every "$v"
 drv bytes/arg-all.drv "$d" "$b" every "$n" "$v"
 drv bytes/builder-all.drv "$d" every "$a" "$n" "$v"
-drv bytes/system-plain.drv plain "$b" "$a" "$n" "$v"
+drv bytes/system-utf8.drv utf8 "$b" "$a" "$n" "$v"
 
 p=/nix/store/$h
 shape() { printf '%s' "$2" > "shape/$1.drv"; }
