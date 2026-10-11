@@ -12,9 +12,9 @@ prints with the expected answer.
 
 | Path | What | Expected answer |
 |:---|:---|:---|
-| `lang/` | Nix's own language tests (`tests/functional/lang` of Nix 2.34.8), plus more cases in the same layout; `eval-*-regex-*` and `eval-*-fromTOML-*` take one entry each of `lang/corpora/`, except the two in `nix-bugs/regex-char-sign/` | `eval-okay-*.exp`, or failure for `eval-fail-*`; acceptance or refusal for `parse-*` |
+| `lang/` | Nix's own language tests (`tests/functional/lang` of Nix 2.34.8), plus more cases in the same layout (`eval-*-drv-*`: output paths; `eval-*-context-*`: string context); `eval-*-regex-*` and `eval-*-fromTOML-*` take one entry each of `lang/corpora/`, except the two in `nix-bugs/regex-char-sign/` | `eval-okay-*.exp`, or failure for `eval-fail-*`; acceptance or refusal for `parse-*` |
 | `parse/` | Nix source found by differential fuzzing | `FILE.exp`: `ok TREE` or `error LINE:COL` |
-| `nar/` | NARs found by differential fuzzing | `FILE.exp`: `ok CONSUMED SHA256` or `error` |
+| `nar/` | NARs found by differential fuzzing; `nar/upstream/`: the NAR test data of Nix | `FILE.exp`: `ok CONSUMED SHA256` or `error` |
 | `corpus/parse/`, `corpus/nar/` | grown fuzz corpora: 3,665 sources, 258 NARs | none: compare with the reference (`--against`) |
 | `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
 | `drv/` | `.drv` files: real ones, one per byte and field, shapes, and Nix's own test data | `FILE.exp`: `ok DRVPATH SHA256` or `error`; see `drv/README.md` |
@@ -116,5 +116,5 @@ Not here yet: cases that need a writable store (`builtins.getFlake`,
 
 ## Licence
 
-LGPL-2.1-or-later, as Nix: `lang/` and `drv/upstream/` come from the Nix
-source tree.
+LGPL-2.1-or-later, as Nix: `lang/`, `drv/upstream/` and `nar/upstream/`
+come from the Nix source tree.

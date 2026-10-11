@@ -1,0 +1,1 @@
+{ one = "/1s8n5cffjq9nw0b9z0hhxriv7nmfdb3vhc58c6mkgc2bnmdv8az8"; p = { drvPath = "/nix/store/r34cd00pakpsx8mifl9inpigcd3gfksc-p.drv.drv"; outPath = "/0nwicrkfz5bkgvbi5xcdpw3jc42an2hsckr8ipnd3j6c13sqynla"; }; two = "/11b2kfj7s59gkvhv2pj4l0wn9lcg11wyld691vsc7icmyahzn6f1"; user = "/nix/store/bx40a6n519fk3nap1q5wmm42aabcal7i-user.drv"; }
