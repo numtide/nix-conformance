@@ -8,12 +8,23 @@ export NIX_REMOTE=dummy://
 # only the settings the runner gives, never the user's nix.conf
 export NIX_CONF_DIR=/var/empty NIX_USER_CONF_FILES=/var/empty/nix.conf
 need() { command -v "$1" > /dev/null || exit 3; }
+# Evaluation writes each .drv into a store of its own, as nix-instantiate
+# does: the dummy store gives a .drv no references, so a drvPath's context
+# would have the wrong closure (nix-bugs/dummy-store).
+evaluate() {
+  local root code
+  root=$(mktemp -d) || exit 2
+  NIX_REMOTE="local?root=$root" nix-instantiate --eval --strict --read-write-mode "$@"
+  code=$?
+  chmod -R u+w "$root" && rm -rf "$root"
+  exit $code
+}
 case $op in
   parse) need parse-oracle; exec parse-oracle "$file" ;;
   check) exec nix-instantiate --parse "$file" > /dev/null ;;
   nar) need nar-oracle; exec nar-oracle "$file" ;;
   drv) need drv-oracle; exec drv-oracle "$file" ;;
-  eval) exec nix-instantiate --eval --strict "$@" "$file" ;;
-  eval-xml) exec nix-instantiate --eval --strict --xml --no-location "$@" "$file" ;;
+  eval) evaluate "$@" "$file" ;;
+  eval-xml) evaluate --xml --no-location "$@" "$file" ;;
   *) exit 3 ;;
 esac
