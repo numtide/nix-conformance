@@ -115,6 +115,14 @@ The conventions of Nix's own test runner, `tests/functional/lang.sh`:
   refuse. A refusal includes an undefined variable. `NAME.exp` holds
   Nix's own printing of the tree and is not compared.
 
+A derivation's `drvPath` and `outPath` are those of a real store: a
+string with a drvPath's context brings the closure of that `.drv` into
+the derivation that takes it. The reference evaluates each case with a
+local store of its own (`nix-bugs/dummy-store` says why not the dummy
+store). An implementation needs no store, only the same paths.
+`eval-okay-drv-*` and `eval-okay-context-*` test this; their system is
+always `x86_64-linux`, so the answers are the same on every host.
+
 ## `wire`
 
 Not run by `run` yet: the worker-protocol reference is `wire-oracle`, which
