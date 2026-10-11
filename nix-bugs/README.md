@@ -42,8 +42,75 @@ Not a bug of 2.34.8, which is right here: a regression on Nix master
 (2.36pre, 203f85b2). `StringViewStream::get()` (`src/libstore/aterm.cc`,
 since 69b449fe5) returns a signed `char`, so the byte 0xFF compares equal
 to EOF, and a `.drv` with that byte in a string is "unterminated string
-in derivation". The files are `drv/*.drv`: Nix 2.34.8 writes and reads
-them.
+in derivation". These are cases in `drv/`, because Nix 2.34.8 writes and
+reads them: through `lib.adapterFor nixVersions.git`, Nix 2.36pre fails
+the six real `.drv` files, the four `bytes/*-all.drv` that hold 0xFF, and
+of the 256 `bytes/env-value-XX.drv` only `env-value-ff`. The fix is
+NixOS/nix#16580.
+
+## `drv-system-quote/`: evaluation writes a `.drv` that Nix cannot read
+
+`Derivation::unparse` (`src/libstore/derivations.cc`) writes the system
+with `printUnquotedString`: no escapes. A system that holds `"` then ends
+its string early. `eval.nix` is `derivation { system = "a\"b"; ... }`,
+with no experimental feature:
+
+```sh
+nix-instantiate --store 'local?root=/tmp/s' nix-bugs/drv-system-quote/eval.nix
+# error: error parsing derivation '/nix/store/l2mfisn5gbg0r9q47wi02ilh6isrfyc4-sys.drv': expected string ','
+```
+
+The `.drv` is in the store before the error, written as `"a"b"`: the
+string ends at the second `"`. Nix 2.34.8 and Nix 2.36pre (203f85b2) both
+fail so. The writer must refuse such a system, or escape it, as
+`derivation-aterm.md` now forbids escapes there. A `\` is worse: 2.34.8
+writes `system = "a\\nb"` as `"a\nb"` and reads it back with a newline,
+as another derivation. `nix-instantiate` stops on "derivation has
+incorrect output", and the `.drv` in the store has a drvPath other than
+its name. So `drv/bytes/` leaves the five bytes with an escape out of the
+system.
+
+## `drv-text-hash/`: a text output with another hash than SHA-256 crashes Nix
+
+`StoreDirConfig::makeFixedOutputPathFromCA` (`src/libstore/store-dir-config.cc`)
+asserts that a text-hashed output uses SHA-256. Nothing checks that
+before, so `outputHashMode = "text"` with `outputHashAlgo = "sha1"`
+aborts Nix with SIGABRT, in evaluation and in reading a `.drv`:
+
+```sh
+nix-instantiate --extra-experimental-features 'ca-derivations dynamic-derivations' nix-bugs/drv-text-hash/eval.nix
+# Assertion 'ti.hash.algo == HashAlgorithm::SHA256' failed ... (exit 134)
+drv-oracle nix-bugs/drv-text-hash/text-sha1.drv   # the same abort
+```
+
+`text-md5.drv`, `text-sha1.drv` and `text-sha512.drv` abort both Nix
+2.34.8 and 2.36pre (203f85b2). Without `dynamic-derivations`, evaluation
+refuses the text output first. An implementation should refuse these
+inputs.
+
+## `drv-canonical/`: spellings that Nix 2.34.8 accepts and later Nix refuses
+
+The ATerm document of Nix after 2.34.8
+(`doc/manual/source/protocols/derivation-aterm.md`, "Canonical form")
+gives each derivation one spelling. Nix 2.34.8 accepts these others. It
+writes the derivation in its own form, so the bytes, and for most of them
+the drvPath, change:
+
+| File | Not canonical |
+|:---|:---|
+| `newline-in-string.drv` | a raw newline byte in a string |
+| `unknown-escape.drv` | `\q` |
+| `unsorted-env.drv` | env entries out of order |
+| `duplicate-env.drv` | the same env name twice |
+| `trailing-bytes.drv` | bytes after the closing parenthesis |
+| `escape-in-system.drv` | an escape in the system |
+| `input-not-drv.drv` | an input derivation whose path does not end in `.drv` |
+| `fixed-path-mismatch.drv` | a fixed output whose path is not that of its hash |
+| `unsorted-inputs.drv` | input derivations out of order: `hello.drv` of Nix's own test data |
+
+Nix 2.36pre (203f85b2) refuses them. No `.drv` that Nix 2.34.8 writes has
+one of them, so a store does not hold them, and the suite has no answer
+for them: an implementation may accept or refuse.
 
 ## `daemon-client/`: a daemon's reply that crashes Nix's client
 
