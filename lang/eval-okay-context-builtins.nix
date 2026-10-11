@@ -26,6 +26,7 @@ in
   toString = ctx (toString [ s t ]);
   baseNameOf = ctx (baseNameOf s);
   dirOf = ctx (dirOf s);
+  # the captures of `match` have no context: kept on purpose, not a Nix bug
   match = map ctx (builtins.match "(.*)-(.*)" s);
   split = map (x: if builtins.isString x then ctx x else map ctx x) (builtins.split "-" s);
   hashString = ctx (builtins.hashString "sha256" s);
