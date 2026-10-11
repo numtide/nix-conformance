@@ -50,6 +50,8 @@ Rank is by the real bug a gap would catch. Cost is the work to add it.
 
 ### 1. A derivation target: `.drv` read, write and drvPath
 
+**Built:** `drv/` and the `drv` op, with `lib.adapterFor` (#4).
+
 **What it catches.** Since `69b449fe5`, Nix master reads the byte 0xFF
 in an ATerm string as end of file (`nix-bugs/README.md`). Nix writes such
 bytes, because `builtins.readFile` does not check them. One such `.drv` in
@@ -102,6 +104,9 @@ one implementation.
 
 ### 2. Output paths from evaluation
 
+**Built:** `lang/eval-*-drv-*`, except a `text` output with another hash
+than SHA-256, which crashes Nix (`nix-bugs/drv-text-hash`).
+
 **What it catches.** A wrong output path gives a wrong cache hit or no
 hit, and a store that differs from Nix's store. The class is real here:
 `nix-bugs/dummy-store` shows Nix itself giving a wrong drvPath when the
@@ -133,6 +138,8 @@ is the cheapest gap with a real class of bug behind it.
 
 ### 3. String context
 
+**Built:** `lang/eval-*-context-*`.
+
 **What it catches.** A string that loses its context gives a derivation
 without an input. The build then fails in a sandbox, or worse, it works
 and the garbage collector deletes a dependency later. A context that is
@@ -152,6 +159,9 @@ tests (`value/context.cc`).
 **Cost.** Small: one day, with gap 2.
 
 ### 4. Imports of upstream fixtures
+
+**Built:** `drv/upstream/` and `nar/upstream/`. The `flakeref.cc` cases
+are not imported yet.
 
 **What it catches.** Edges that Nix developers chose by hand: NAR
 `dotdot`, `slash`, `nul-character`, padding, truncation and
@@ -232,13 +242,12 @@ reference moves. They catch little that is new.
 
 ## Recommendation
 
-Build gaps 1, 2 and 3, in that order, and gap 4 with them.
+Gaps 1 to 4 are built. Next, by the same measure:
 
-- Gap 1 has a real bug of this month behind it, and its oracle is done.
-- Gap 2 needs no change to the runner and covers the output path rules
-  that every implementation must get right.
-- Gap 3 is the same work as gap 2 and finds the bugs a build finds late.
-- Gap 4 costs hours.
-
-Add the adapter for any Nix source with gap 1: without it the suite
-cannot catch a Nix regression before a release.
+- The masked hash (`hashDerivationModulo`) as an answer of its own. The
+  `drv` op checks the bytes and the drvPath; `eval-okay-drv-masking`
+  checks the masking only through output paths. Upstream has fixtures
+  (`src/libstore-tests/data/derivation/masked`).
+- Gap 5, the worker protocol, for an implementation that speaks it.
+- A run of Nix master through `lib.adapterFor nixVersions.git` now and
+  then: it caught `69b449fe5` before a release would have.
