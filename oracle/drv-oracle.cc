@@ -1,14 +1,18 @@
 // The derivation reference of nix-conformance: Nix 2.34.8's `.drv` reader
-// and writer, with the experimental features ca-derivations and
-// dynamic-derivations on.
+// and writer, with the experimental features ca-derivations,
+// dynamic-derivations, impure-derivations and git-hashing on.
 //
 //   drv-oracle FILE...   one line per file: `ok DRVPATH SHA256` or `error`
 //   drv-oracle           a server for fuzzers: frames on stdin and stdout
 //
-// The derivation is named `x`. Server frames: request u32 length, the
-// ATerm. Reply u8 kind (0 done, 1 error), u32 length, then the drvPath, a
-// NUL and the ATerm written again, or for an error the message.
+// A file names its derivation as SPEC.md says; a frame names it `x`.
+// Server frames: request u32 length, the ATerm. Reply u8 kind (0 done,
+// 1 error), u32 length, then the drvPath, a NUL and the ATerm written
+// again, or for an error the message.
 
+#if __has_include(<nix/store/derivation/aterm.hh>)
+#  include <nix/store/derivation/aterm.hh>
+#endif
 #include <nix/store/derivations.hh>
 #include <nix/store/globals.hh>
 #include <nix/store/store-api.hh>
@@ -60,10 +64,26 @@ void reply(uint8_t kind, const std::string & payload)
     writeAll(payload.data(), len);
 }
 
-std::pair<std::string, std::string> roundTrip(Store & store, std::string aterm)
+std::string nameOf(std::string_view file)
 {
-    auto drv = parseDerivation(store, std::move(aterm), "x");
+    auto name = baseNameOf(file);
+    if (name.ends_with(".drv"))
+        name.remove_suffix(4);
+    if (name.size() > 33 && name[32] == '-')
+        name.remove_prefix(33);
+    return std::string(name);
+}
+
+std::pair<std::string, std::string> roundTrip(Store & store, std::string aterm, std::string_view name)
+{
+#if __has_include(<nix/store/derivation/aterm.hh>)
+    // Nix after 2.34 moved the ATerm functions; this keeps one source for both.
+    auto drv = derivation::parse(store, std::move(aterm), name);
+    return {store.printStorePath(computeStorePath(store, drv)), derivation::unparse(drv, store)};
+#else
+    auto drv = parseDerivation(store, std::move(aterm), name);
     return {store.printStorePath(computeStorePath(store, drv)), drv.unparse(store, false)};
+#endif
 }
 
 } // namespace
@@ -71,12 +91,12 @@ std::pair<std::string, std::string> roundTrip(Store & store, std::string aterm)
 int main(int argc, char ** argv)
 {
     initLibStore(false);
-    experimentalFeatureSettings.set("experimental-features", "ca-derivations dynamic-derivations");
+    experimentalFeatureSettings.set("experimental-features", "ca-derivations dynamic-derivations impure-derivations git-hashing");
     auto store = openStore("dummy://");
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
             try {
-                auto [path, out] = roundTrip(*store, readFile(argv[i]));
+                auto [path, out] = roundTrip(*store, readFile(argv[i]), nameOf(argv[i]));
                 std::cout << "ok " << path << " " << hashString(HashAlgorithm::SHA256, out).to_string(HashFormat::Base16, false)
                           << "\n";
             } catch (std::exception &) {
@@ -94,7 +114,7 @@ int main(int argc, char ** argv)
         if (!readAll(in.data(), len))
             return 0;
         try {
-            auto [path, out] = roundTrip(*store, in);
+            auto [path, out] = roundTrip(*store, in, "x");
             reply(0, path + '\0' + out);
         } catch (std::exception & e) {
             reply(1, filterANSIEscapes(e.what(), true));

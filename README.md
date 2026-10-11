@@ -17,7 +17,7 @@ prints with the expected answer.
 | `nar/` | NARs found by differential fuzzing | `FILE.exp`: `ok CONSUMED SHA256` or `error` |
 | `corpus/parse/`, `corpus/nar/` | grown fuzz corpora: 3,665 sources, 258 NARs | none: compare with the reference (`--against`) |
 | `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
-| `drv/` | `.drv` files for a derivation target, not run yet | their names; see `drv/README.md` |
+| `drv/` | `.drv` files: real ones, one per byte and field, shapes, and Nix's own test data | `FILE.exp`: `ok DRVPATH SHA256` or `error`; see `drv/README.md` |
 | `COVERAGE.md` | what the suite does not test yet, ranked | |
 | `oracle/`, `adapters/nix` | the reference adapter | |
 
@@ -36,6 +36,7 @@ at the root of this repository, and with `NIX_PATH=lang/dir3:lang/dir4`,
 | `parse FILE` | one line: `ok TREE`, or `ok` without a tree, or `error LINE:COL` (SPEC.md) | 0 |
 | `check FILE` | anything | 0 if FILE parses and all its variables are bound, else non-zero |
 | `nar FILE` | one line: `ok CONSUMED SHA256` or `error` | 0 |
+| `drv FILE` | one line: `ok DRVPATH SHA256` or `error` (SPEC.md) | 0 |
 | `eval FILE FLAG...` | the value, as `nix-instantiate --eval --strict FLAG... FILE` prints it | 0, or non-zero on an evaluation error |
 | `eval-xml FILE FLAG...` | the value as `--eval --strict --xml --no-location` prints it | 0, or non-zero |
 
@@ -50,7 +51,7 @@ as the `.exp` files expect.
 ## Run it
 
 ```sh
-nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar
+nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar, drv
 nix run github:numtide/nix-conformance -- --tree ./my-adapter parse
 nix run github:numtide/nix-conformance -- \
   --against "$(nix build github:numtide/nix-conformance#adapter --print-out-paths)/bin/nix-conformance-adapter" \
@@ -85,11 +86,24 @@ checks.conformance = nix-conformance.lib.${system}.check {
 `*-oracle`, run without arguments, reads and writes the frames its
 header describes.
 
+`lib.${system}.adapterFor NIX` is the reference adapter built from
+another Nix, such as `nixVersions.git`: it runs that Nix through the
+suite as one more implementation, so a regression shows before a
+release. An oracle that does not compile against that Nix's API is left
+out, and its op is skipped.
+
+```sh
+nix build --impure --expr 'let f = builtins.getFlake "github:numtide/nix-conformance";
+  p = f.inputs.nixpkgs.legacyPackages.x86_64-linux;
+  in f.lib.x86_64-linux.adapterFor p.nixVersions.git'
+nix run github:numtide/nix-conformance -- result/bin/* drv
+```
+
 ## Add cases
 
 - `lang/`: a `.nix` file and, for `eval-okay-*`, its `.exp` from Nix
   2.34.8.
-- `parse/`, `nar/`: the input as `NAME.nix` or `NAME.nar`, then
+- `parse/`, `nar/`, `drv/`: the input as `NAME.nix`, `NAME.nar` or `NAME.drv`, then
   `./expect "$(nix build .#adapter --print-out-paths)/bin/nix-conformance-adapter"`
   writes `NAME.nix.exp`. An input on which the reference fails is no
   case: put it in `nix-bugs/` with a note.
@@ -98,8 +112,9 @@ header describes.
 answer no longer holds for Nix 2.34.8 fails the check.
 
 Not here yet: cases that need a writable store (`builtins.getFlake`,
-`builtins.storePath`, `builtins.toFile` read back), and derivations.
+`builtins.storePath`, `builtins.toFile` read back), and building derivations.
 
 ## Licence
 
-LGPL-2.1-or-later, as Nix: `lang/` comes from the Nix source tree.
+LGPL-2.1-or-later, as Nix: `lang/` and `drv/upstream/` come from the Nix
+source tree.

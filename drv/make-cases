@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# Writes drv/bytes/ and drv/shape/. Run it from the repository root, then
+# `./expect ADAPTER drv`. NIX_SRC, a checkout of Nix at 2.34.8, also gives
+# drv/upstream/.
+set -euo pipefail
+cd "$(dirname "$0")"
+rm -rf bytes shape
+mkdir -p bytes shape
+
+h=00000000000000000000000000000000
+
+# one byte as it is written in a canonical ATerm string
+byte() {
+  case $1 in
+    22) printf '\\"' ;;
+    5c) printf '\\\\' ;;
+    0a) printf '\\n' ;;
+    0d) printf '\\r' ;;
+    09) printf '\\t' ;;
+    *) printf "\\x$1" ;;
+  esac
+}
+lit() { printf '%s' "$1"; }
+one() { lit a; byte "$1"; lit b; }
+every() { for i in {0..255}; do byte "$(printf %02x "$i")"; done; }
+# a system is UTF-8 text, and Nix writes it without escapes, so the five
+# bytes that have one are not in it (nix-bugs/drv-system-quote)
+utf8() { for i in {1..127}; do case $i in 9|10|13|34|92) ;; *) byte "$(printf %02x "$i")" ;; esac; done; lit "é€😀"; }
+
+drv() { # file system builder arg env-name env-value: each a command
+  local file=$1 name
+  name=$(basename "$file" .drv)
+  {
+    printf 'Derive([("out","/nix/store/%s-%s","","")],[],[],"' $h "$name"
+    $2; lit '","'; $3; lit '",["'; $4; lit '"],[("'; $5; lit '","'; $6; lit '")])'
+  } > "$file"
+}
+
+d="lit x86_64-linux" b="lit /bin/sh" a="lit -e" n="lit a" v="lit 1"
+for i in {0..255}; do
+  x=$(printf %02x "$i")
+  drv bytes/env-value-$x.drv "$d" "$b" "$a" "$n" "one $x"
+done
+drv bytes/env-value-all.drv "$d" "$b" "$a" "$n" every
+drv bytes/env-name-all.drv "$d" "$b" "$a" every "$v"
+drv bytes/arg-all.drv "$d" "$b" every "$n" "$v"
+drv bytes/builder-all.drv "$d" every "$a" "$n" "$v"
+drv bytes/system-utf8.drv utf8 "$b" "$a" "$n" "$v"
+
+p=/nix/store/$h
+shape() { printf '%s' "$2" > "shape/$1.drv"; }
+shape no-outputs 'Derive([],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape empty-strings 'Derive([("out","'$p'-empty-strings","","")],[],[],"","",[""],[("","")])'
+shape outputs-three 'Derive([("bin","'$p'-outputs-three-bin","",""),("dev","'$p'-outputs-three-dev","",""),("out","'$p'-outputs-three","","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape args-env-many 'Derive([("out","'$p'-args-env-many","","")],[],[],"x86_64-linux","/bin/sh",["-e","b","a"],[("a","1"),("b","2"),("c","3")])'
+shape inputs 'Derive([("out","'$p'-inputs","","")],[("'$p'-a.drv",["dev","out"]),("'$p'-b.drv",["out"])],["'$p'-src1","'$p'-src2"],"x86_64-linux","/bin/sh",[],[])'
+shape dyn-inputs 'DrvWithVersion("xp-dyn-drv",[("out","","r:sha256","")],[("'$p'-a.drv",(["out"],[("out",["lib","out"])]))],[],"x86_64-linux","/bin/sh",[],[])'
+shape deferred 'Derive([("out","","","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape floating-nar 'Derive([("out","","r:sha256","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape floating-text 'Derive([("out","","text:sha256","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape floating-flat 'Derive([("out","","sha256","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape impure 'Derive([("out","","r:sha256","impure")],[],[],"x86_64-linux","/bin/sh",[],[])'
+# the hashes of the empty string; each path is the outPath that evaluation
+# of the same fixed-output derivation gives
+md5=d41d8cd98f00b204e9800998ecf8427e
+sha1=da39a3ee5e6b4b0d3255bfef95601890afd80709
+sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+sha512=cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+fixed() { # name method:algo hash path
+  shape "$1" 'Derive([("out","/nix/store/'$4-$1'","'$2'","'$3'")],[],[],"builtin","builtin:fetchurl",[],[])'
+}
+fixed fixed-md5 md5 $md5 a6l22riq4pxm4j3yrw1asxc3cs5a6ij4
+fixed fixed-r-md5 r:md5 $md5 pqvlmjz6qqwr7fp6z8zs5hl0pz1slqmn
+fixed fixed-sha1 sha1 $sha1 4ibj73ca9mh19yh1kkxm4id9dyyry2xv
+fixed fixed-r-sha1 r:sha1 $sha1 aabgv2gmcy6sgxc758ff9ykdh81k045m
+fixed fixed-git-sha1 git:sha1 $sha1 f4yj2ygcr3a15wiwaf678ppjwfkfa3d9
+fixed fixed-sha256 sha256 $sha256 hsqmwwc8xib0ly40h34cdlqx4w687v6f
+fixed fixed-r-sha256 r:sha256 $sha256 1p4vs8imsqh9lfx3g2x98zpjgn4s8v85
+fixed fixed-text-sha256 text:sha256 $sha256 s7cq62nwn1rw4mbw7p6knrrlnhvkhxyv
+fixed fixed-sha512 sha512 $sha512 8l29s4qvmsygjk1h1gn2ad44b2vsgwgf
+fixed fixed-r-sha512 r:sha512 $sha512 x5qf94l3p07iyh1wjmx8wynbn8z640i3
+shape fail-empty ''
+shape fail-not-derive 'Foo([],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape fail-version 'DrvWithVersion("x",[],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape fail-unterminated 'Derive([],[],[],"x86_64-linux,"/bin/sh",[],[])'
+shape fail-truncated 'Derive([],[],[],"x86_64-linux","/bin/sh",[],['
+shape fail-algo 'Derive([("out","","r:sha7","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape fail-hash-length 'Derive([("out","'$p'-fixed","sha256","00")],[],[],"builtin","builtin:fetchurl",[],[])'
+shape fail-src-not-store 'Derive([],[],["/tmp/x"],"x86_64-linux","/bin/sh",[],[])'
+shape fail-output-path 'Derive([("out","/tmp/x","","")],[],[],"x86_64-linux","/bin/sh",[],[])'
+shape fail-dyn-inputs-plain 'Derive([],[("'$p'-a.drv",(["out"],[("out",["lib"])]))],[],"x86_64-linux","/bin/sh",[],[])'
+
+if [[ -n ${NIX_SRC:-} ]]; then
+  rm -rf upstream && mkdir upstream
+  src=$NIX_SRC/src/libstore-tests/data/derivation
+  for f in "$src"/*.drv "$src"/ca/*.drv "$src"/ia/*.drv; do
+    rel=${f#"$src"/}
+    # their input derivations are not sorted: nix-bugs/drv-canonical
+    [[ $rel == hello.drv || $rel == firefox.drv ]] && continue
+    cp "$f" "upstream/${rel//\//-}"
+  done
+fi
