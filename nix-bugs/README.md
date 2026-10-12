@@ -198,3 +198,22 @@ Nix 2.34.8 drops it: `parseFlakeRef "github:a/b?ref=x&unknown=1"` is
 2.34.8 (`203f85b2`) refuses both, which is safer: a misspelled `rev` or
 `narHash` no longer goes unseen. No case has one, so an implementation
 may accept or refuse it.
+
+## `hash-lenient/`: base64 hashes that Nix reads past their end
+
+`base64::decode` (`src/libutil/base-n.cc`) stops at the first `=`, skips
+a newline anywhere, and drops the bits left over after the last byte. So
+Nix 2.34.8 reads each of these as the SHA-256 or SHA-512 of the empty
+string, in an SRI hash and so in `outputHash`:
+
+| File | Hash |
+|:---|:---|
+| `too-much-padding.nix` | `sha256-…uFU===`: three `=` where one is due |
+| `partial-padding.nix` | `sha512-…Pg=`: one `=` where two are due |
+| `trailing-text.nix` | `sha256-…uFU= x`: text after the padding |
+| `newline.nix` | `sha256-…+5\nJCeu…`: a newline inside |
+| `noncanonical-bits.nix` | `sha256-…uFV=`: the last digit sets bits past the 256th, so two spellings name one hash |
+
+No document gives these a meaning, and a stricter reader is safer. No
+case has one, so an implementation may accept or refuse them. The rules
+that are clear are cases: `lang/eval-*-hash-spelling-*`.

@@ -105,7 +105,10 @@ one implementation.
 ### 2. Output paths from evaluation
 
 **Built:** `lang/eval-*-drv-*`, except a `text` output with another hash
-than SHA-256, which crashes Nix (`nix-bugs/drv-text-hash`).
+than SHA-256, which crashes Nix (`nix-bugs/drv-text-hash`). The rules of
+store path names (`eval-*-drv-name-*`) and of hash spellings
+(`eval-*-hash-spelling-*`) are cases; the base64 spellings that Nix
+reads past their end are in `nix-bugs/hash-lenient`.
 
 **What it catches.** A wrong output path gives a wrong cache hit or no
 hit, and a store that differs from Nix's store. The class is real here:
