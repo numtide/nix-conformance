@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# wire/ask ADAPTER CASE.op: serves CASE.bin (and CASE.after) on a socket
+# with wire-serve, then asks ADAPTER the operation of CASE.op there. Exit 3,
+# a skip, when wire-serve is not on PATH.
+adapter=$1 case=${2%.op}
+command -v wire-serve > /dev/null || { echo "wire/ask: wire-serve is not on PATH" >&2; exit 3; }
+dir=$(mktemp -d) || exit 2
+after=()
+[[ -e $case.after ]] && after=("$case.after")
+pid=$(wire-serve "$dir/s" "$case.bin" "${after[@]}") || exit 2
+trap 'kill "$pid"; rm -rf "$dir"' EXIT
+read -r -a op < "$case.op"
+"$adapter" wire "$dir/s" "${op[@]}"

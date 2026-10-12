@@ -21,6 +21,8 @@ case $op in
   check) exec nix-instantiate --parse "$file" > /dev/null ;;
   nar) need nar-oracle; exec nar-oracle "$file" ;;
   drv) need drv-oracle; exec drv-oracle "$file" ;;
+  # FILE is the socket of a daemon (wire/ask)
+  wire) need wire-oracle; exec wire-oracle "$file" "$@" ;;
   eval) scratch; nix-instantiate --eval --strict --read-write-mode "$@" "$file" ;;
   eval-xml) scratch; nix-instantiate --eval --strict --read-write-mode --xml --no-location "$@" "$file" ;;
   # From a working directory in /nix/store, as in a flake check, `nix eval`

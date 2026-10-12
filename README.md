@@ -1,7 +1,7 @@
 # nix-conformance
 
-A test suite for implementations of the Nix language and of the NAR
-format. Every expected answer is the answer of Nix 2.34.8, and a check
+A test suite for implementations of the Nix language, of the NAR
+format and of a client of the Nix daemon. Every expected answer is the answer of Nix 2.34.8, and a check
 keeps it so.
 
 An implementation takes part through one small program, its *adapter*.
@@ -19,11 +19,13 @@ prints with the expected answer.
 | `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
 | `drv/` | `.drv` files: real ones, one per byte and field, shapes, and Nix's own test data | `FILE.exp`: `ok DRVPATH SHA256` or `error`; see `drv/README.md` |
 | `flake/` | flake trees with relative inputs and their `flake.lock`: `follows`, overrides, subflakes, and locks that must be refused | `CASE.exp`: the JSON of output `result`, or failure for `fail-*`; see `flake/README.md` |
+| `wire/` | scripted daemons: the handshake at each protocol version, and replies to each operation of a worker-protocol client, right and wrong | `CASE.exp`: the answer line of SPEC.md; see `wire/README.md` |
 | `COVERAGE.md` | what the suite does not test yet, ranked | |
 | `oracle/`, `adapters/nix` | the reference adapter | |
+| `wire/serve.c`, `wire/ask` | the scripted daemon of the `wire` cases | |
 
 `SPEC.md` defines the answers: the tree form, the NAR and drv lines,
-the flake op and the conventions of `lang/`.
+the flake and wire ops and the conventions of `lang/`.
 
 ## The adapter protocol
 
@@ -39,6 +41,7 @@ at the root of this repository, and with `NIX_PATH=lang/dir3:lang/dir4`,
 | `nar FILE` | one line: `ok CONSUMED SHA256` or `error` | 0 |
 | `drv FILE` | one line: `ok DRVPATH SHA256` or `error` (SPEC.md) | 0 |
 | `flake FILE` | FILE is `flake/CASE/flake.nix`: output `result` of that flake as JSON, with its lock as it is (SPEC.md) | 0, or non-zero when the lock or the evaluation fails |
+| `wire SOCKET OP ARG...` | a daemon listens at SOCKET: connect a client, run OP, print the answer of SPEC.md (one line, or more for `build`) | 0 |
 | `eval FILE FLAG...` | the value, as `nix-instantiate --eval --strict FLAG... FILE` prints it | 0, or non-zero on an evaluation error |
 | `eval-xml FILE FLAG...` | the value as `--eval --strict --xml --no-location` prints it | 0, or non-zero |
 
@@ -53,7 +56,7 @@ as the `.exp` files expect.
 ## Run it
 
 ```sh
-nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar, drv, flake
+nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar, drv, flake, wire
 nix run github:numtide/nix-conformance -- --tree ./my-adapter parse
 nix run github:numtide/nix-conformance -- \
   --against "$(nix build github:numtide/nix-conformance#adapter --print-out-paths)/bin/nix-conformance-adapter" \
@@ -112,6 +115,9 @@ nix run github:numtide/nix-conformance -- result/bin/* drv
 - `flake/`: a directory `okay-NAME/` or `fail-NAME/` with `flake.nix` and
   relative inputs only. `flake/make-locks` writes its `flake.lock`;
   `./expect` writes `okay-NAME.exp`.
+- `wire/`: a line in `wire/make-cases`, which writes `NAME.op` and
+  `NAME.bin`; `./expect` writes `NAME.exp`. A reply on which Nix's
+  client crashes goes to `nix-bugs/daemon-client/`.
 
 `nix flake check` runs every case through the reference. A case whose
 answer no longer holds for Nix 2.34.8 fails the check.

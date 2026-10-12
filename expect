@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Writes FILE.exp, the reference's answer, for each case under PATH
-# (default: parse nar drv flake), and flake/CASE.exp for a flake case. The
-# expected answers of this repository are made so, with the reference
+# (default: parse nar drv flake wire); flake/CASE.exp for a flake case and
+# wire/CASE.exp for wire/CASE.op. The expected answers of this repository
+# are made so, with the reference
 # adapter: `nix build .#adapter`.
 set -uo pipefail
 [[ $# -ge 1 ]] || { echo "usage: expect ADAPTER [PATH...]" >&2; exit 2; }
@@ -9,17 +10,19 @@ adapter=$(realpath "$1"); shift
 cd "$(dirname "$0")"
 export NIX_CONFIG="experimental-features = nix-command flakes"
 paths=("$@")
-[[ ${#paths[@]} -gt 0 ]] || paths=(parse nar drv flake)
-find "${paths[@]}" -type f \( -name '*.nix' -o -name '*.nar' -o -name '*.drv' \) -print0 | sort -z |
+[[ ${#paths[@]} -gt 0 ]] || paths=(parse nar drv flake wire)
+find "${paths[@]}" -type f \( -name '*.nix' -o -name '*.nar' -o -name '*.drv' -o -name '*.op' \) -print0 | sort -z |
   while IFS= read -r -d '' f; do
     exp=$f.exp
     case $f in
       parse/*) op=parse ;; nar/*) op=nar ;; drv/*) op=drv ;;
       flake/*/*/*) continue ;;
       flake/okay-*/flake.nix) op=flake exp=$(dirname "$f").exp ;;
+      wire/*.op) op=wire exp=${f%.op}.exp ;;
       *) continue ;;
     esac
-    if ! "$adapter" "$op" "$f" > "$exp" 2>/dev/null; then
+    if [[ $op == wire ]]; then ask=(bash wire/ask "$adapter" "$f"); else ask=("$adapter" "$op" "$f"); fi
+    if ! "${ask[@]}" > "$exp" 2>/dev/null; then
       rm -f "$exp"
       echo "expect: the reference fails on $f; it is no case" >&2
     fi

@@ -6,7 +6,7 @@ set -uo pipefail
 usage() {
   cat <<'EOF'
 usage: run [--json] [--tree] [--known FILE] [--against REFERENCE] ADAPTER [PATH...]
-Runs the cases under PATH (default: lang parse nar drv flake) through ADAPTER
+Runs the cases under PATH (default: lang parse nar drv flake wire) through ADAPTER
 and compares its answers with the expected ones.
 compares its answers with the expected ones.
 
@@ -42,7 +42,7 @@ adapter=$(realpath "$1"); shift
 root=$(cd "$(dirname "$0")" && pwd)
 cd "$root" || exit 2
 paths=("$@")
-[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar drv flake)
+[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar drv flake wire)
 
 pass=0 fail=0 skip=0 knew=0
 declare -A listed=()
@@ -134,6 +134,14 @@ flake_case() { # flake/CASE/flake.nix
   esac
 }
 
+wire_case() { # wire/CASE.op
+  local f=$1 got code want
+  got=$(ask bash wire/ask "$adapter" "$f"); code=$?
+  [[ $got == SKIP ]] && { report skip "$f" "" ""; return; }
+  want=$(cat "${f%.op}.exp")
+  [[ $code == 0 && $got == "$want" ]] && report pass "$f" || report fail "$f" "$want" "$got (exit $code)"
+}
+
 expected_case() { # op file expected-file
   local got code want
   got=$(ask "$adapter" "$1" "$2"); code=$?
@@ -171,6 +179,8 @@ while IFS= read -r -d '' f; do
     lang/*.nix) lang_case "$f" ;;
     flake/*/*/*) ;;
     flake/*/flake.nix) [[ -z $against ]] && flake_case "$f" ;;
+    wire/*.op) [[ -z $against ]] && wire_case "$f" ;;
+    wire/*) ;;
     *.exp|*.md) ;;
     *)
       op=$(op_of "$f")
