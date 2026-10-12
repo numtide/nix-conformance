@@ -102,6 +102,25 @@ forbids (`doc/manual/source/protocols/derivation-aterm.md`, "Canonical
 form"). These are in `nix-bugs/drv-canonical/`, not in `drv/`: an
 implementation may accept or refuse them.
 
+## `flake`
+
+The input is `flake/CASE/flake.nix`. Its directory is a flake, with the
+`flake.lock` beside it, and all its inputs are relative paths inside it.
+The answer is output `result` of that flake, evaluated in pure mode, as
+JSON: as `nix eval --json --no-update-lock-file path:DIR#result` prints
+it, without whitespace and with attribute names sorted.
+
+The lock file is used as it is. A lock that Nix would have to change is
+an error: a stale or missing entry, a `follows` that leads nowhere, a
+cycle, an unknown version. The implementation must not lock again or
+fetch anything in its place.
+
+- `okay-CASE/`: the answer must be `flake/okay-CASE.exp`.
+- `fail-CASE/`: `flake` must fail. The message is not compared.
+
+A relative input's `outPath` is `…-source/./b` in Nix 2.34.8, with the
+`./`. No case depends on that string.
+
 ## `lang/`
 
 The conventions of Nix's own test runner, `tests/functional/lang.sh`:

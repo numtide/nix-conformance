@@ -1,0 +1,23 @@
+{
+  "nodes": {
+    "E": {
+      "flake": false,
+      "locked": {
+        "path": "./foo.nix",
+        "type": "path"
+      },
+      "original": {
+        "path": "./foo.nix",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "root": {
+      "inputs": {
+        "E": "E"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

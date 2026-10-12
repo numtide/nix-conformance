@@ -1,0 +1,69 @@
+{
+  "nodes": {
+    "B": {
+      "inputs": {
+        "C": "C",
+        "foobar": [
+          "foobar"
+        ],
+        "goodoo": [
+          "B",
+          "C",
+          "goodoo"
+        ]
+      },
+      "locked": {
+        "path": "./B",
+        "type": "path"
+      },
+      "original": {
+        "path": "./B",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "C": {
+      "inputs": {
+        "foobar": [
+          "B",
+          "foobar"
+        ],
+        "goodoo": [
+          "B",
+          "C",
+          "foobar"
+        ]
+      },
+      "locked": {
+        "path": "./C",
+        "type": "path"
+      },
+      "original": {
+        "path": "./C",
+        "type": "path"
+      },
+      "parent": [
+        "B"
+      ]
+    },
+    "foobar": {
+      "locked": {
+        "path": "./E",
+        "type": "path"
+      },
+      "original": {
+        "path": "./E",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "root": {
+      "inputs": {
+        "B": "B",
+        "foobar": "foobar"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

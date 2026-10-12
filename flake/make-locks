@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Writes flake.lock of each okay-* case with NIX, the `nix` of Nix 2.34.8,
+# and makes each fail-* case from okay-follows-sibling.
+set -euo pipefail
+[[ $# == 1 ]] || { echo "usage: make-locks NIX" >&2; exit 2; }
+nix=$(realpath "$1")
+cd "$(dirname "$0")"
+export NIX_CONFIG="experimental-features = nix-command flakes"
+export NIX_CONF_DIR=/var/empty NIX_USER_CONF_FILES=/var/empty/nix.conf
+store=$(mktemp -d)
+trap 'chmod -R u+w "$store"; rm -rf "$store"' EXIT
+
+for d in okay-*/; do
+  rm -f "$d/flake.lock"
+  NIX_REMOTE="local?root=$store" "$nix" flake lock "path:$PWD/$d" 2> /dev/null
+done
+
+base=okay-follows-sibling
+fail() { # case, then a jq filter for the lock (. keeps it)
+  rm -rf "$1"
+  cp -r "$base" "$1"
+  jq "$2" "$base/flake.lock" > "$1/flake.lock"
+}
+fail fail-input-not-locked '.nodes.root.inputs |= del(.c) | del(.nodes.c)
+  | .nodes.b.inputs.d = "d"
+  | .nodes.d = {locked: {path: "./d", type: "path"}, original: {path: "./d", type: "path"}, parent: ["b"]}'
+fail fail-lock-stale .
+sed -i 's|inputs.c.url = "path:./c"|inputs.c.url = "path:./d"|' fail-lock-stale/flake.nix
+fail fail-follows-missing '.nodes.b.inputs.d = ["nope"]'
+fail fail-follows-cycle '.nodes.root.inputs.c = ["b", "d"] | .nodes.b.inputs.d = ["c"] | del(.nodes.c)'
+fail fail-lock-dangling-node '.nodes.root.inputs.c = "zz" | del(.nodes.c)'
+fail fail-lock-no-root '.root = "zz"'
+fail fail-lock-version '.version = 8'
+fail fail-lock-version-old '.version = 4'
+fail fail-lock-not-json .
+echo '{ "nodes": ' > fail-lock-not-json/flake.lock
+fail fail-path-escape '.nodes.c.locked.path = "../../c" | .nodes.c.original.path = "../../c"'
+sed -i 's|"path:./c"|"path:../../c"|' fail-path-escape/flake.nix
+fail fail-url-and-follows .
+sed -i 's|^  inputs.b.inputs.d.follows = "c";|&\n  inputs.c.follows = "b";|' fail-url-and-follows/flake.nix

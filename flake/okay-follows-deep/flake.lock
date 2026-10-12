@@ -1,0 +1,55 @@
+{
+  "nodes": {
+    "B": {
+      "inputs": {
+        "C": "C"
+      },
+      "locked": {
+        "path": "./B",
+        "type": "path"
+      },
+      "original": {
+        "path": "./B",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "C": {
+      "inputs": {
+        "D": [
+          "D"
+        ]
+      },
+      "locked": {
+        "path": "./C",
+        "type": "path"
+      },
+      "original": {
+        "path": "./C",
+        "type": "path"
+      },
+      "parent": [
+        "B"
+      ]
+    },
+    "D": {
+      "locked": {
+        "path": "./D",
+        "type": "path"
+      },
+      "original": {
+        "path": "./D",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "root": {
+      "inputs": {
+        "B": "B",
+        "D": "D"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

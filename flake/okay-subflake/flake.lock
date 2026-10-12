@@ -1,0 +1,38 @@
+{
+  "nodes": {
+    "dep": {
+      "locked": {
+        "path": "./dep",
+        "type": "path"
+      },
+      "original": {
+        "path": "./dep",
+        "type": "path"
+      },
+      "parent": [
+        "sub"
+      ]
+    },
+    "root": {
+      "inputs": {
+        "sub": "sub"
+      }
+    },
+    "sub": {
+      "inputs": {
+        "dep": "dep"
+      },
+      "locked": {
+        "path": "sub",
+        "type": "path"
+      },
+      "original": {
+        "path": "sub",
+        "type": "path"
+      },
+      "parent": []
+    }
+  },
+  "root": "root",
+  "version": 7
+}
