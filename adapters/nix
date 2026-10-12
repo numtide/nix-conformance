@@ -11,20 +11,24 @@ need() { command -v "$1" > /dev/null || exit 3; }
 # Evaluation writes each .drv into a store of its own, as nix-instantiate
 # does: the dummy store gives a .drv no references, so a drvPath's context
 # would have the wrong closure (nix-bugs/dummy-store).
-evaluate() {
-  local root code
-  root=$(mktemp -d) || exit 2
-  NIX_REMOTE="local?root=$root" nix-instantiate --eval --strict --read-write-mode "$@"
-  code=$?
-  chmod -R u+w "$root" && rm -rf "$root"
-  exit $code
+scratch() {
+  tmp=$(mktemp -d) || exit 2
+  trap 'chmod -R u+w "$tmp"; rm -rf "$tmp"' EXIT
+  export NIX_REMOTE="local?root=$tmp" XDG_CACHE_HOME=$tmp/cache
 }
 case $op in
   parse) need parse-oracle; exec parse-oracle "$file" ;;
   check) exec nix-instantiate --parse "$file" > /dev/null ;;
   nar) need nar-oracle; exec nar-oracle "$file" ;;
   drv) need drv-oracle; exec drv-oracle "$file" ;;
-  eval) evaluate "$@" "$file" ;;
-  eval-xml) evaluate --xml --no-location "$@" "$file" ;;
+  eval) scratch; nix-instantiate --eval --strict --read-write-mode "$@" "$file" ;;
+  eval-xml) scratch; nix-instantiate --eval --strict --read-write-mode --xml --no-location "$@" "$file" ;;
+  # From a working directory in /nix/store, as in a flake check, `nix eval`
+  # takes that store path for the installable. With --no-write-lock-file
+  # too, Nix locks again in memory and accepts a stale lock.
+  flake)
+    scratch
+    dir=$(realpath "$(dirname "$file")")
+    cd "$tmp" && nix eval --json --no-update-lock-file "path:$dir#result" ;;
   *) exit 3 ;;
 esac

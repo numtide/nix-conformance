@@ -6,8 +6,8 @@ set -uo pipefail
 usage() {
   cat <<'EOF'
 usage: run [--json] [--tree] [--known FILE] [--against REFERENCE] ADAPTER [PATH...]
-
-Runs the cases under PATH (default: lang parse nar drv) through ADAPTER and
+Runs the cases under PATH (default: lang parse nar drv flake) through ADAPTER
+and compares its answers with the expected ones.
 compares its answers with the expected ones.
 
   --tree               compare parse trees too, not only accept/refuse and
@@ -42,7 +42,7 @@ adapter=$(realpath "$1"); shift
 root=$(cd "$(dirname "$0")" && pwd)
 cd "$root" || exit 2
 paths=("$@")
-[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar drv)
+[[ ${#paths[@]} -gt 0 ]] || paths=(lang parse nar drv flake)
 
 pass=0 fail=0 skip=0 knew=0
 declare -A listed=()
@@ -123,6 +123,17 @@ lang_case() { # file
   esac
 }
 
+flake_case() { # flake/CASE/flake.nix
+  local f=$1 dir got code
+  dir=$(dirname "$f")
+  got=$(ask "$adapter" flake "$f"); code=$?
+  [[ $got == SKIP ]] && { report skip "$dir" "" ""; return; }
+  case $(basename "$dir") in
+    okay-*) [[ $code == 0 && $got == "$(cat "$dir.exp")" ]] && report pass "$dir" || report fail "$dir" "$(cat "$dir.exp")" "$got (exit $code)" ;;
+    fail-*) [[ $code != 0 ]] && report pass "$dir" || report fail "$dir" "an error" "$got" ;;
+  esac
+}
+
 expected_case() { # op file expected-file
   local got code want
   got=$(ask "$adapter" "$1" "$2"); code=$?
@@ -158,6 +169,8 @@ while IFS= read -r -d '' f; do
   case $f in
     lang/*/*) ;;
     lang/*.nix) lang_case "$f" ;;
+    flake/*/*/*) ;;
+    flake/*/flake.nix) [[ -z $against ]] && flake_case "$f" ;;
     *.exp|*.md) ;;
     *)
       op=$(op_of "$f")

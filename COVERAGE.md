@@ -221,6 +221,15 @@ fixed by the case.
 JSON comparison in `run`. The lock file format is documented, the
 resolution less so.
 
+**Built: the read side.** `flake/` has 8 trees from `follow-paths.sh`
+and `relative-paths-lockfile.sh`, read with their lock as it is, and 11
+locks that must be refused (stale, incomplete, a `follows` cycle). The
+answer is output `result` as JSON, not the lock file: relative inputs
+have no `narHash` or `lastModified`, so no fetcher op is needed. Writing
+a lock file is not tested. On its first run, it found that iets
+evaluated a stale lock and accepted an input with both a url and a
+`follows`.
+
 ### 8. Command-line results
 
 **What it catches.** A different exit code or stdout from `nix-build`,
@@ -242,7 +251,8 @@ reference moves. They catch little that is new.
 
 ## Recommendation
 
-Gaps 1 to 4 are built. Next, by the same measure:
+Gaps 1 to 4 and the read side of gap 7 are built. Next, by the same
+measure:
 
 - The masked hash (`hashDerivationModulo`) as an answer of its own. The
   `drv` op checks the bytes and the drvPath; `eval-okay-drv-masking`

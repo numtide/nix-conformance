@@ -189,3 +189,12 @@ the other. They are entry 43 of `lang/corpora/regex-invalid.nix` and entry
 260 of `lang/corpora/regex.nix`, which have no case in `lang/`. A range
 with both ends above 0x7f (`[à-ú]`) is in the same half on both hosts and
 keeps its case.
+
+## An unknown parameter of a `github:` or `gitlab:` flake reference
+
+Nix 2.34.8 drops it: `parseFlakeRef "github:a/b?ref=x&unknown=1"` is
+`{ owner = "a"; ref = "x"; repo = "b"; type = "github"; }`, and
+`lastModified` in a `gitlab:` reference goes the same way. Nix after
+2.34.8 (`203f85b2`) refuses both, which is safer: a misspelled `rev` or
+`narHash` no longer goes unseen. No case has one, so an implementation
+may accept or refuse it.

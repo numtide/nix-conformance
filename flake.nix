@@ -22,7 +22,7 @@
           exec ${pkgs.bash}/bin/bash ${self}/run "$@"
         '';
         # a check that `adapter` (a program) passes the suites in `paths`
-        check = { name, adapter, paths ? [ "lang" "parse" "nar" "drv" ], flags ? [ ] }:
+        check = { name, adapter, paths ? [ "lang" "parse" "nar" "drv" "flake" ], flags ? [ ] }:
           pkgs.runCommand "nix-conformance-${name}" { } ''
             ${run}/bin/nix-conformance ${pkgs.lib.escapeShellArgs flags} ${adapter} ${pkgs.lib.escapeShellArgs paths}
             touch $out

@@ -18,11 +18,12 @@ prints with the expected answer.
 | `corpus/parse/`, `corpus/nar/` | grown fuzz corpora: 3,665 sources, 258 NARs | none: compare with the reference (`--against`) |
 | `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
 | `drv/` | `.drv` files: real ones, one per byte and field, shapes, and Nix's own test data | `FILE.exp`: `ok DRVPATH SHA256` or `error`; see `drv/README.md` |
+| `flake/` | flake trees with relative inputs and their `flake.lock`: `follows`, overrides, subflakes, and locks that must be refused | `CASE.exp`: the JSON of output `result`, or failure for `fail-*`; see `flake/README.md` |
 | `COVERAGE.md` | what the suite does not test yet, ranked | |
 | `oracle/`, `adapters/nix` | the reference adapter | |
 
-`SPEC.md` defines the answers: the tree form, the NAR line and the
-conventions of `lang/`.
+`SPEC.md` defines the answers: the tree form, the NAR and drv lines,
+the flake op and the conventions of `lang/`.
 
 ## The adapter protocol
 
@@ -37,6 +38,7 @@ at the root of this repository, and with `NIX_PATH=lang/dir3:lang/dir4`,
 | `check FILE` | anything | 0 if FILE parses and all its variables are bound, else non-zero |
 | `nar FILE` | one line: `ok CONSUMED SHA256` or `error` | 0 |
 | `drv FILE` | one line: `ok DRVPATH SHA256` or `error` (SPEC.md) | 0 |
+| `flake FILE` | FILE is `flake/CASE/flake.nix`: output `result` of that flake as JSON, with its lock as it is (SPEC.md) | 0, or non-zero when the lock or the evaluation fails |
 | `eval FILE FLAG...` | the value, as `nix-instantiate --eval --strict FLAG... FILE` prints it | 0, or non-zero on an evaluation error |
 | `eval-xml FILE FLAG...` | the value as `--eval --strict --xml --no-location` prints it | 0, or non-zero |
 
@@ -51,7 +53,7 @@ as the `.exp` files expect.
 ## Run it
 
 ```sh
-nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar, drv
+nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar, drv, flake
 nix run github:numtide/nix-conformance -- --tree ./my-adapter parse
 nix run github:numtide/nix-conformance -- \
   --against "$(nix build github:numtide/nix-conformance#adapter --print-out-paths)/bin/nix-conformance-adapter" \
@@ -107,6 +109,9 @@ nix run github:numtide/nix-conformance -- result/bin/* drv
   `./expect "$(nix build .#adapter --print-out-paths)/bin/nix-conformance-adapter"`
   writes `NAME.nix.exp`. An input on which the reference fails is no
   case: put it in `nix-bugs/` with a note.
+- `flake/`: a directory `okay-NAME/` or `fail-NAME/` with `flake.nix` and
+  relative inputs only. `flake/make-locks` writes its `flake.lock`;
+  `./expect` writes `okay-NAME.exp`.
 
 `nix flake check` runs every case through the reference. A case whose
 answer no longer holds for Nix 2.34.8 fails the check.
@@ -116,5 +121,5 @@ Not here yet: cases that need a writable store (`builtins.getFlake`,
 
 ## Licence
 
-LGPL-2.1-or-later, as Nix: `lang/`, `drv/upstream/` and `nar/upstream/`
-come from the Nix source tree.
+LGPL-2.1-or-later, as Nix: `lang/`, `drv/upstream/`, `nar/upstream/` and the
+cases of `flake/` taken from its tests come from the Nix source tree.

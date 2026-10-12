@@ -1,0 +1,25 @@
+{
+  "nodes": {
+    "B": {
+      "inputs": {
+        "top": []
+      },
+      "locked": {
+        "path": "./B",
+        "type": "path"
+      },
+      "original": {
+        "path": "./B",
+        "type": "path"
+      },
+      "parent": []
+    },
+    "root": {
+      "inputs": {
+        "B": "B"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
