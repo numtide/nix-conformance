@@ -144,9 +144,18 @@ always `x86_64-linux`, so the answers are the same on every host.
 
 ## `wire`
 
-Not run by `run` yet: the worker-protocol reference is `wire-oracle`, which
-the fuzzers of iets drive. It is Nix 2.34.8's `RemoteStore` against a
-daemon at a Unix socket, one operation per request. The answer is one line:
+A case is a daemon's side of one conversation: `wire/CASE.bin`, and for
+an upload `wire/CASE.after`. `wire/ask` serves it on a Unix socket with
+`wire-serve` and calls `ADAPTER wire SOCKET OP ARG...`, with `OP ARG...`
+from `wire/CASE.op`. The adapter connects a client to SOCKET, runs the
+operation and prints the answer. `wire-serve` sends `CASE.bin` to each
+connection, then closes its write side. With `CASE.after`, it first reads
+until the end of the upload of `add-multiple`: a frame of 8 bytes that
+holds the count 0, then the empty frame. Then it sends `CASE.after`.
+
+The reference is `wire-oracle`, which the fuzzers of iets drive too. It is
+Nix 2.34.8's `RemoteStore` against a daemon at a Unix socket, one
+operation per request. The answer is one line:
 
 | Operation | Answer |
 |:---|:---|
@@ -166,7 +175,8 @@ A list is sorted and joined with `,`. `nar` and `SHA256` are base16 without
 the algorithm. In `build`, `PATH` is the derived path as Nix writes it
 (`to_string_legacy`), `S` the wire value of the status
 (`buildResultStatusTable`) and `M` the message as the daemon sent it. Any
-reply the client refuses is `error`.
+reply the client refuses is `error`. Log lines and activities on stderr
+are not part of the answer.
 
 A `unix://` store of Nix reads a NAR from the file system, not with
 `NarFromPath`; `nar` calls `RemoteStore::narFromPath`, as an `ssh-ng://`

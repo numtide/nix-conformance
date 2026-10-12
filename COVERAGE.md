@@ -191,6 +191,14 @@ this suite.
 daemon in `run`. `wire-oracle` exists. It is only of use to an
 implementation that speaks the protocol.
 
+**Built: the client side.** `wire/` has 80 scripted daemons, run through
+the answers of `wire-oracle`: the handshake from 1.17 to 1.40, and right
+and wrong replies to each operation of SPEC.md. The upstream `.bin`
+fixtures are not used: each is one value, not a conversation, and the
+cases cover the same fields. A daemon is not tested, and nor are the
+`daemon-client` replies, on which Nix crashes. `wire-oracle` does not
+build against Nix master, so a master run skips these cases.
+
 ### 6. Content-addressed resolution
 
 **What it catches.** A resolved derivation with another drvPath, so a CA
@@ -251,13 +259,14 @@ reference moves. They catch little that is new.
 
 ## Recommendation
 
-Gaps 1 to 4 and the read side of gap 7 are built. Next, by the same
+Gaps 1 to 4, the client side of gap 5 and the read side of gap 7 are
+built. Next, by the same
 measure:
 
 - The masked hash (`hashDerivationModulo`) as an answer of its own. The
   `drv` op checks the bytes and the drvPath; `eval-okay-drv-masking`
   checks the masking only through output paths. Upstream has fixtures
   (`src/libstore-tests/data/derivation/masked`).
-- Gap 5, the worker protocol, for an implementation that speaks it.
+- `wire-oracle` for Nix master, so that a master run covers `wire/`.
 - A run of Nix master through `lib.adapterFor nixVersions.git` now and
   then: it caught `69b449fe5` before a release would have.
