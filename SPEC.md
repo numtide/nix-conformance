@@ -1,16 +1,17 @@
 # The answers
 
 Each answer is what Nix 2.34.8 gives. Where this text and the reference
-disagree, the reference is right and this text has a bug.
+disagree, the reference wins and this text has a bug.
 
 ## `parse`
 
 The input is parsed as the file `/case/input.nix`, with `$HOME` set to
-`/home/case`, the experimental feature `pipe-operators` on, and no check of
-scope: an undefined variable is not an error here (`check` tests scope).
+`/home/case` and the experimental feature `pipe-operators` on. Scope is
+not checked, so an undefined variable is no error here. `check` tests
+scope.
 
-A refusal is `error LINE:COL`: the position of Nix's error. Lines end at
-`\n`, at `\r\n` and at a lone `\r`; the column counts bytes from 1. The
+A refusal is `error LINE:COL`, the position of Nix's error. Lines end at
+`\n`, `\r\n` or a lone `\r`. The column counts bytes from 1. The
 message is not part of the answer.
 
 An acceptance is `ok TREE`. The tree is an S-expression of Nix's syntax
@@ -44,26 +45,26 @@ tree after `parser.y` desugared it:
 | `"a${b}c"` | `(interp (str "a") B (str "c"))` |
 | `./a/${b}` | `(+ (path "/case/a/") B)` |
 
-Strings are quoted with `"`; `"` and `\` are escaped with `\`, and each
+Strings are quoted with `"`. `"` and `\` are escaped with `\`, and each
 byte outside 0x20–0x7e is written `\xHH`.
 
-The desugaring follows Nix exactly, including its odd corners:
+The desugaring follows Nix exactly, odd corners included:
 
 - `a.b = 1; a.c = 2;` and `a = { b = 1; }; a.c = 2;` merge into one set
-  (`ParserState::addAttr`); the `rec` of a set merged into another is
+  (`ParserState::addAttr`). The `rec` of a set merged into another is
   dropped.
 - Applying a call extends it (`makeCall`): `(f a) b` is `(call F A B)`,
   and so is `(a - b) c` as `(call (var "__sub") A B C)`. The one exception
   is `e or`, which is `(call E (var "or"))` and is extended by what
   follows: `e or x` is `(call E (var "or") X)`.
 - `${e}` names a static attribute when `e` is one string node:
-  `${"a"}` and `${''a''}` are `"a"`; `${''a''$b''}` is dynamic, because
-  the escape is a token of its own.
+  `${"a"}` and `${''a''}` are `"a"`. `${''a''$b''}` is dynamic, because
+  the escape is a separate token.
 
 Three rules make the tree independent of how a parser stores it:
 
-1. The `bind`s of an `attrs` are sorted by name, as bytes; the `dyn-bind`s
-   keep their order after them. The `formal`s of a lambda are sorted by
+1. The `bind`s of an `attrs` are sorted by name, as bytes. The `dyn-bind`s
+   follow them in source order. The `formal`s of a lambda are sorted by
    name.
 2. In `(+ ...)` and `(interp ...)`, adjacent `(str ...)` parts are joined.
    In `(interp ...)`, empty `(str "")` parts are dropped, and an
@@ -76,9 +77,9 @@ Three rules make the tree independent of how a parser stores it:
 
 The input is read as a NAR, as `parseDump` does (`src/libutil/archive.cc`).
 A refusal is `error`. An acceptance is `ok CONSUMED SHA256`: the number of
-bytes the NAR took (bytes after it are not read), and the SHA-256, in
-lowercase hexadecimal, of the tree written out again as a NAR. For a
-well-formed NAR that is the hash of its own bytes.
+bytes the NAR took, and the SHA-256, in lowercase hexadecimal, of the tree
+written out again as a NAR. Bytes after the NAR are not read. For a
+well-formed NAR, SHA256 is the hash of its own bytes.
 
 ## `drv`
 
@@ -94,26 +95,26 @@ A refusal is `error`. An acceptance is `ok DRVPATH SHA256`: the store
 path of the derivation, and the SHA-256, in lowercase hexadecimal, of the
 ATerm written again (`Derivation::unparse`). Each case in `drv/` that Nix
 accepts is in the form Nix writes, so SHA256 is the hash of the file
-itself: the derivation must come back byte for byte. A file named by its
+itself and the derivation must come back byte for byte. A file named by its
 store path gives that path as DRVPATH.
 
 Nix 2.34.8 also accepts spellings that the ATerm document of later Nix
 forbids (`doc/manual/source/protocols/derivation-aterm.md`, "Canonical
-form"). These are in `nix-bugs/drv-canonical/`, not in `drv/`: an
-implementation may accept or refuse them.
+form"). These are in `nix-bugs/drv-canonical/`, and an implementation
+may accept or refuse them.
 
 ## `flake`
 
-The input is `flake/CASE/flake.nix`. Its directory is a flake, with the
-`flake.lock` beside it, and all its inputs are relative paths inside it.
-The answer is output `result` of that flake, evaluated in pure mode, as
-JSON: as `nix eval --json --no-update-lock-file path:DIR#result` prints
-it, without whitespace and with attribute names sorted.
+The input is `flake/CASE/flake.nix`. Its directory is a flake with a
+`flake.lock`, and all its inputs are relative paths inside it. The answer
+is output `result` of that flake, evaluated in pure mode, as JSON. That
+is what `nix eval --json --no-update-lock-file path:DIR#result` prints,
+without whitespace and with attribute names sorted.
 
 The lock file is used as it is. A lock that Nix would have to change is
 an error: a stale or missing entry, a `follows` that leads nowhere, a
-cycle, an unknown version. The implementation must not lock again or
-fetch anything in its place.
+cycle, an unknown version. The implementation must not relock or fetch
+anything instead.
 
 - `okay-CASE/`: the answer must be `flake/okay-CASE.exp`.
 - `fail-CASE/`: `flake` must fail. The message is not compared.
@@ -125,21 +126,21 @@ A relative input's `outPath` is `…-source/./b` in Nix 2.34.8, with the
 
 The conventions of Nix's own test runner, `tests/functional/lang.sh`:
 
-- `eval-okay-NAME.nix`: the output of `eval` must be `NAME.exp`; with
-  `NAME.exp.xml`, the output of `eval-xml` must be it. `NAME.exp-disabled`
+- `eval-okay-NAME.nix`: the output of `eval` must be `NAME.exp`. With
+  `NAME.exp.xml`, the output of `eval-xml` must match it. `NAME.exp-disabled`
   disables the case. `NAME.flags` holds `nix-instantiate` flags.
 - `eval-fail-NAME.nix`: `eval` must fail. The text of the error
   (`NAME.err.exp`) is Nix's and is not compared.
 - `parse-okay-NAME.nix`, `parse-fail-NAME.nix`: `check` must accept or
-  refuse. A refusal includes an undefined variable. `NAME.exp` holds
+  refuse. An undefined variable counts as a refusal. `NAME.exp` holds
   Nix's own printing of the tree and is not compared.
 
-A derivation's `drvPath` and `outPath` are those of a real store: a
+A derivation's `drvPath` and `outPath` are those of a real store. A
 string with a drvPath's context brings the closure of that `.drv` into
-the derivation that takes it. The reference evaluates each case with a
-local store of its own (`nix-bugs/dummy-store` says why not the dummy
-store). An implementation needs no store, only the same paths.
-`eval-okay-drv-*` and `eval-okay-context-*` test this; their system is
+the derivation that takes it. The reference evaluates each case with its
+own local store (`nix-bugs/dummy-store` explains why the dummy store
+won't do). An implementation needs no store, only the same paths.
+`eval-okay-drv-*` and `eval-okay-context-*` test this. Their system is
 always `x86_64-linux`, so the answers are the same on every host.
 
 ## `wire`
@@ -153,7 +154,7 @@ connection, then closes its write side. With `CASE.after`, it first reads
 until the end of the upload of `add-multiple`: a frame of 8 bytes that
 holds the count 0, then the empty frame. Then it sends `CASE.after`.
 
-The reference is `wire-oracle`, which the fuzzers of iets drive too. It is
+The reference is `wire-oracle`, which iets's fuzzers also drive. It runs
 Nix 2.34.8's `RemoteStore` against a daemon at a Unix socket, one
 operation per request. The answer is one line:
 
@@ -178,14 +179,13 @@ the algorithm. In `build`, `PATH` is the derived path as Nix writes it
 reply the client refuses is `error`. Log lines and activities on stderr
 are not part of the answer.
 
-A `unix://` store of Nix reads a NAR from the file system, not with
-`NarFromPath`; `nar` calls `RemoteStore::narFromPath`, as an `ssh-ng://`
-store does.
+Nix's `unix://` store reads a NAR straight from the file system. `nar`
+calls `RemoteStore::narFromPath`, as an `ssh-ng://` store does.
 
 ## `eval`
 
-Not run by `run`: the evaluation reference is `eval-oracle`, which the
-fuzzers of iets drive. The input is an expression, evaluated as a string
+`run` does not use this op. The evaluation reference is `eval-oracle`,
+which iets's fuzzers drive. The input is an expression, evaluated as a string
 in `/case` in pure mode, with the experimental feature `ca-derivations`
 on and a store of its own in a temporary directory
 (`local?root=DIR`). A `derivation` writes its `.drv` there, as
@@ -197,7 +197,7 @@ of `__structuredAttrs` included. The message is not part of the answer.
 
 `==` on two sets compares their attributes in symbol order, the order in
 which the evaluator first saw each name, and stops at the first
-difference. Which of a different and a failing attribute it reaches first
-is therefore not part of the language. The oracle keeps its symbols from
-one expression to the next, so a fuzzer that wants one answer for such
-an expression names the attributes first, in one order.
+difference. So whether it reaches a differing or a failing attribute
+first is not part of the language. The oracle keeps its symbols from one
+expression to the next. A fuzzer that wants a stable answer for such an
+expression names the attributes first, in a fixed order.

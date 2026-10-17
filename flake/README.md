@@ -3,14 +3,14 @@
 The cases of the `flake` op (SPEC.md). Every input is a relative path
 inside the case, so a lock has no `narHash` or `lastModified` and is the
 same on every host. `make-locks` writes each `flake.lock` with Nix
-2.34.8; `./expect` writes `okay-*.exp`.
+2.34.8, and `./expect` writes `okay-*.exp`.
 
 ## `okay-*`: the lock is read as it is
 
 | Case | What | Source |
 |:---|:---|:---|
 | `follows-sibling` | an input of an input follows a root input | |
-| `follows-relative` | a `follows` in B is relative to B; a `follows` to a `follows` | `follow-paths.sh` |
+| `follows-relative` | a `follows` in B is relative to B, and a `follows` to a `follows` | `follow-paths.sh` |
 | `follows-overload` | B's D follows `C/D`, and the root overrides B's C | `follow-paths.sh`, NixOS/nix#8819 |
 | `follows-deep` | `inputs.B.inputs.C.inputs.D.follows` | `follow-paths.sh` |
 | `follows-root` | `follows = ""`: the root flake itself | |

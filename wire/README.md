@@ -3,7 +3,7 @@
 The cases of the `wire` op (SPEC.md). Each case is a scripted daemon:
 `CASE.bin` holds its bytes, `CASE.op` the operation the client runs, and
 `CASE.exp` the answer of Nix 2.34.8's client. `make-cases` writes the
-`.op`, `.bin` and `.after` files; `./expect` writes the `.exp` files.
+`.op`, `.bin` and `.after` files, and `./expect` writes the `.exp` files.
 
 | Cases | What the daemon does |
 |:---|:---|
@@ -19,13 +19,12 @@ The cases of the `wire` op (SPEC.md). Each case is a scripted daemon:
 Some answers that a new client may not expect:
 
 - An error after `QueryPathInfo` whose message holds `is not valid` is
-  `none`, not `error`: old daemons signal an invalid path so
+  `none`. Old daemons signal an invalid path that way
   (`BasicClientConnection::queryPathInfo`).
-- A daemon at 1.18 to 1.34 is accepted, without a trust flag; 1.17 is
+- A daemon at 1.18 to 1.34 is accepted without a trust flag. 1.17 is
   refused (`WorkerProto::minimum`).
 - The message of a successful build result is dropped.
 - `AddIndirectRoot` takes any integer as its reply.
 - Bytes after the NAR of `NarFromPath` are not read.
 
-The replies on which Nix's own client crashes are in
-`nix-bugs/daemon-client/`, not here.
+Replies that crash Nix's own client are in `nix-bugs/daemon-client/`.
