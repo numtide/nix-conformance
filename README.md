@@ -1,131 +1,181 @@
 # nix-conformance
 
-A test suite for implementations of the Nix language, of the NAR
-format and of a client of the Nix daemon. Every expected answer is the answer of Nix 2.34.8, and a check
-keeps it so.
+Conformance tests for Nix implementations.
 
-An implementation takes part through one small program, its *adapter*.
-The runner gives the adapter one file at a time and compares what it
-prints with the expected answer.
+The tests cover the Nix language, NAR files, `.drv` files, flake lock files
+and the daemon protocol (client side). The expected results come from Nix
+2.34.8.
 
-## Layout
+## Why?
 
-| Path | What | Expected answer |
-|:---|:---|:---|
-| `lang/` | Nix's own language tests (`tests/functional/lang` of Nix 2.34.8), plus more cases in the same layout (`eval-*-drv-*`: output paths; `eval-*-context-*`: string context); `eval-*-regex-*` and `eval-*-fromTOML-*` take one entry each of `lang/corpora/`, except the two in `nix-bugs/regex-char-sign/` | `eval-okay-*.exp`, or failure for `eval-fail-*`; acceptance or refusal for `parse-*` |
-| `parse/` | Nix source found by differential fuzzing | `FILE.exp`: `ok TREE` or `error LINE:COL` |
-| `nar/` | NARs found by differential fuzzing; `nar/upstream/`: the NAR test data of Nix | `FILE.exp`: `ok CONSUMED SHA256` or `error` |
-| `corpus/parse/`, `corpus/nar/` | grown fuzz corpora: 3,665 sources, 258 NARs | none: compare with the reference (`--against`) |
-| `nix-bugs/` | inputs on which Nix 2.34.8 itself fails, or answers differently by host | none; see `nix-bugs/README.md` |
-| `drv/` | `.drv` files: real ones, one per byte and field, shapes, and Nix's own test data | `FILE.exp`: `ok DRVPATH SHA256` or `error`; see `drv/README.md` |
-| `flake/` | flake trees with relative inputs and their `flake.lock`: `follows`, overrides, subflakes, and locks that must be refused | `CASE.exp`: the JSON of output `result`, or failure for `fail-*`; see `flake/README.md` |
-| `wire/` | scripted daemons: the handshake at each protocol version, and replies to each operation of a worker-protocol client, right and wrong | `CASE.exp`: the answer line of SPEC.md; see `wire/README.md` |
-| `COVERAGE.md` | what the suite does not test yet, ranked | |
-| `oracle/`, `adapters/nix` | the reference adapter | |
-| `wire/serve.c`, `wire/ask` | the scripted daemon of the `wire` cases | |
+Several projects reimplement parts of Nix. Nix's own test suite is not much
+use to them, because it mostly checks Nix's error messages and internals.
+These tests only check behaviour: whether a file parses, what an expression
+evaluates to, which store path a derivation gets. Many of them were found by
+fuzzing other implementations against Nix. Inputs where Nix itself is wrong
+are collected in `nix-bugs/`.
 
-`SPEC.md` defines the answers: the tree form, the NAR and drv lines,
-the flake and wire ops and the conventions of `lang/`.
+## Usage
 
-## The adapter protocol
+To test your implementation, you need an adapter: a small program that takes
+a test file and prints the result in the format described below.
+`adapters/nix` is the adapter for Nix and a good starting point.
 
-The runner calls `ADAPTER OP FILE [FLAG...]` with the working directory
-at the root of this repository, and with `NIX_PATH=lang/dir3:lang/dir4`,
-`NIX_CONFIG="experimental-features = nix-command flakes"`,
-`HOME=/fake-home` and `TEST_VAR=foo` in the environment.
+Then run all tests:
 
-| Op | Prints | Exit |
-|:---|:---|:---|
-| `parse FILE` | one line: `ok TREE`, or `ok` without a tree, or `error LINE:COL` (SPEC.md) | 0 |
-| `check FILE` | anything | 0 if FILE parses and all its variables are bound, else non-zero |
-| `nar FILE` | one line: `ok CONSUMED SHA256` or `error` | 0 |
-| `drv FILE` | one line: `ok DRVPATH SHA256` or `error` (SPEC.md) | 0 |
-| `flake FILE` | FILE is `flake/CASE/flake.nix`: output `result` of that flake as JSON, with its lock as it is (SPEC.md) | 0, or non-zero when the lock or the evaluation fails |
-| `wire SOCKET OP ARG...` | a daemon listens at SOCKET: connect a client, run OP, print the answer of SPEC.md (one line, or more for `build`) | 0 |
-| `eval FILE FLAG...` | the value, as `nix-instantiate --eval --strict FLAG... FILE` prints it | 0, or non-zero on an evaluation error |
-| `eval-xml FILE FLAG...` | the value as `--eval --strict --xml --no-location` prints it | 0, or non-zero |
-
-The `FLAG`s are `nix-instantiate` flags from a case's `.flags` file. An
-adapter translates them, or exits 3. Exit 3 means "this implementation
-does not do that", for any op: the case is skipped, not failed. In the
-output, the runner replaces the repository's absolute path with `/pwd`,
-as the `.exp` files expect.
-
-`adapters/nix` is the reference adapter, and a short example of one.
-
-## Run it
-
-```sh
-nix run github:numtide/nix-conformance -- ./my-adapter            # lang, parse, nar, drv, flake, wire
-nix run github:numtide/nix-conformance -- --tree ./my-adapter parse
-nix run github:numtide/nix-conformance -- \
-  --against "$(nix build github:numtide/nix-conformance#adapter --print-out-paths)/bin/nix-conformance-adapter" \
-  ./my-adapter corpus/parse
+```console
+$ nix run github:numtide/nix-conformance -- ./my-adapter
 ```
 
-`./run` in a checkout does the same with bash and coreutils.
+or only some of them:
+
+```console
+$ nix run github:numtide/nix-conformance -- --tree ./my-adapter parse
+```
+
+From a checkout, `./run` works the same and only needs bash and coreutils.
+
+### Options
 
 | Flag | Effect |
 |:---|:---|
-| `--tree` | compare parse trees, not only accept, refuse and the position |
-| `--known FILE` | the cases an implementation fails on purpose, one path a line: their failure counts as known, and their passing as a failure, so the list stays true |
-| `--against REFERENCE` | compare with another adapter instead of `.exp` files, for `corpus/` |
-| `--json` | one JSON object per failure or skip, then `{"summary": {...}}` |
+| `--tree` | also compare the parse tree |
+| `--known FILE` | tests that are expected to fail, one path per line. A listed test that passes is reported as a failure, so the list stays up to date |
+| `--against REFERENCE` | compare with another adapter instead of the `.exp` files |
+| `--json` | print each failure or skip as JSON, followed by a summary |
 
-The exit code is 0 when no case failed, 1 when one did, and 2 on bad
-usage.
+The exit code is 0 if all tests passed, 1 if any failed and 2 on usage
+errors.
 
-## Use it from a flake
+The fuzz corpora in `corpus/` have no `.exp` files. Compare them against the
+Nix adapter instead:
+
+```console
+$ nix run github:numtide/nix-conformance -- \
+    --against "$(nix build github:numtide/nix-conformance#adapter --print-out-paths)/bin/nix-conformance-adapter" \
+    ./my-adapter corpus/parse
+```
+
+### As a flake check
 
 ```nix
-inputs.nix-conformance.url = "github:numtide/nix-conformance";
-# ...
-checks.conformance = nix-conformance.lib.${system}.check {
-  name = "my-implementation";
-  adapter = "${my-adapter}/bin/my-adapter";
-  flags = [ "--known" "${./known-failures}" ];
-};
+{
+  inputs.nix-conformance.url = "github:numtide/nix-conformance";
+
+  outputs = { nix-conformance, ... }: {
+    checks.x86_64-linux.conformance = nix-conformance.lib.x86_64-linux.check {
+      name = "my-implementation";
+      adapter = "${my-adapter}/bin/my-adapter";
+      flags = [ "--known" "${./known-failures}" ];
+    };
+  };
+}
 ```
 
-`packages.oracles` gives the reference as servers for a fuzzer: each
-`*-oracle`, run without arguments, reads and writes the frames its
-header describes.
+## Writing an adapter
 
-`lib.${system}.adapterFor NIX` is the reference adapter built from
-another Nix, such as `nixVersions.git`: it runs that Nix through the
-suite as one more implementation, so a regression shows before a
-release. An oracle that does not compile against that Nix's API is left
-out, and its op is skipped.
+The adapter is called as `ADAPTER OP FILE [FLAG...]` from the root of this
+repository, with these environment variables set:
 
-```sh
-nix build --impure --expr 'let f = builtins.getFlake "github:numtide/nix-conformance";
-  p = f.inputs.nixpkgs.legacyPackages.x86_64-linux;
+```
+NIX_PATH=lang/dir3:lang/dir4
+NIX_CONFIG="experimental-features = nix-command flakes"
+HOME=/fake-home
+TEST_VAR=foo
+```
+
+| Op | Output | Exit code |
+|:---|:---|:---|
+| `parse FILE` | `ok TREE`, `ok` or `error LINE:COL` | 0 |
+| `check FILE` | anything | 0 if the file parses and has no undefined variables |
+| `nar FILE` | `ok CONSUMED SHA256` or `error` | 0 |
+| `drv FILE` | `ok DRVPATH SHA256` or `error` | 0 |
+| `flake FILE` | output `result` of the flake as JSON | non-zero if locking or evaluation fails |
+| `wire SOCKET OP ARG...` | the result of the client operation against the daemon at `SOCKET` | 0 |
+| `eval FILE FLAG...` | the value, as printed by `nix-instantiate --eval --strict` | non-zero on errors |
+| `eval-xml FILE FLAG...` | the value, as printed by `nix-instantiate --eval --strict --xml --no-location` | non-zero on errors |
+
+`SPEC.md` describes each output format in detail.
+
+`FLAG`s are `nix-instantiate` flags, taken from the test's `.flags` file.
+
+Exit with code 3 for anything your implementation does not support. The test
+is then skipped.
+
+The runner replaces the absolute path of the repository with `/pwd` before
+comparing.
+
+## Testing Nix master
+
+`lib.${system}.adapterFor` builds the Nix adapter from another Nix version.
+This is useful to catch regressions in Nix before a release:
+
+```console
+$ nix build --impure --expr 'let f = builtins.getFlake "github:numtide/nix-conformance";
+    p = f.inputs.nixpkgs.legacyPackages.x86_64-linux;
   in f.lib.x86_64-linux.adapterFor p.nixVersions.git'
-nix run github:numtide/nix-conformance -- result/bin/* drv
+$ nix run github:numtide/nix-conformance -- result/bin/* drv
 ```
 
-## Add cases
+If an oracle no longer compiles against that version, it is left out and its
+tests are skipped.
 
-- `lang/`: a `.nix` file and, for `eval-okay-*`, its `.exp` from Nix
-  2.34.8.
-- `parse/`, `nar/`, `drv/`: the input as `NAME.nix`, `NAME.nar` or `NAME.drv`, then
-  `./expect "$(nix build .#adapter --print-out-paths)/bin/nix-conformance-adapter"`
-  writes `NAME.nix.exp`. An input on which the reference fails is no
-  case: put it in `nix-bugs/` with a note.
-- `flake/`: a directory `okay-NAME/` or `fail-NAME/` with `flake.nix` and
-  relative inputs only. `flake/make-locks` writes its `flake.lock`;
-  `./expect` writes `okay-NAME.exp`.
-- `wire/`: a line in `wire/make-cases`, which writes `NAME.op` and
-  `NAME.bin`; `./expect` writes `NAME.exp`. A reply on which Nix's
-  client crashes goes to `nix-bugs/daemon-client/`.
+## Fuzzing
 
-`nix flake check` runs every case through the reference. A case whose
-answer no longer holds for Nix 2.34.8 fails the check.
+`packages.oracles` provides Nix 2.34.8 as servers for differential fuzzers.
+Run without arguments, each `*-oracle` reads requests from stdin and writes
+answers to stdout. The format is described at the top of its source file in
+`oracle/`.
 
-Not here yet: cases that need a writable store (`builtins.getFlake`,
-`builtins.storePath`, `builtins.toFile` read back), and building derivations.
+## Layout
 
-## Licence
+| Directory | Contents | Expected output |
+|:---|:---|:---|
+| `lang/` | Nix's language tests (`tests/functional/lang`) and additional tests in the same format | `.exp` files |
+| `parse/` | parser inputs found by fuzzing | `FILE.exp` |
+| `nar/` | NARs found by fuzzing, and Nix's NAR test data in `nar/upstream/` | `FILE.exp` |
+| `drv/` | `.drv` files, see `drv/README.md` | `FILE.exp` |
+| `flake/` | flakes with relative inputs and a `flake.lock`, see `flake/README.md` | `CASE.exp` |
+| `wire/` | scripted daemons, see `wire/README.md` | `CASE.exp` |
+| `corpus/` | fuzz corpora: 3,665 Nix files and 258 NARs | none, use `--against` |
+| `nix-bugs/` | inputs where Nix 2.34.8 is wrong or differs between platforms | none, see `nix-bugs/README.md` |
+| `oracle/`, `adapters/nix` | the Nix adapter and the fuzzing oracles | |
 
-LGPL-2.1-or-later, as Nix: `lang/`, `drv/upstream/`, `nar/upstream/` and the
-cases of `flake/` taken from its tests come from the Nix source tree.
+In `lang/`, `eval-*-drv-*` tests check output paths and `eval-*-context-*`
+tests check string context. The `eval-*-regex-*` and `eval-*-fromTOML-*`
+tests each contain one entry of `lang/corpora/`. Two regex entries have no
+test because their result depends on the platform (see
+`nix-bugs/regex-char-sign/`).
+
+`COVERAGE.md` lists what is not tested yet.
+
+## Adding tests
+
+- `lang/`: add the `.nix` file. For `eval-okay-*`, also add the `.exp` file
+  with the output of Nix 2.34.8.
+- `parse/`, `nar/`, `drv/`: add the input file and generate the `.exp` file
+  with:
+
+  ```console
+  $ ./expect "$(nix build .#adapter --print-out-paths)/bin/nix-conformance-adapter"
+  ```
+
+  If Nix gets the input wrong, add it to `nix-bugs/` with a description
+  instead.
+- `flake/`: add a directory `okay-NAME/` or `fail-NAME/` with a `flake.nix`
+  that only has relative inputs. Generate the lock file with
+  `flake/make-locks`, then run `./expect`.
+- `wire/`: add a line to `wire/make-cases`, run it, then run `./expect`. If
+  the reply crashes the Nix client, it belongs in `nix-bugs/daemon-client/`
+  instead.
+
+`nix flake check` runs all tests against Nix 2.34.8.
+
+Not covered yet: anything that needs a writable store (`builtins.getFlake`,
+`builtins.storePath`, reading back `builtins.toFile`) and building
+derivations.
+
+## License
+
+LGPL-2.1-or-later, like Nix. `lang/`, `drv/upstream/`, `nar/upstream/` and
+some tests in `flake/` are copied from the Nix source tree.
