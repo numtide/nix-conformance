@@ -70,6 +70,12 @@ put() { # name op [arg...] < script
   echo "$*" > "$name.op"
   cat > "$name.bin"
 }
+# the handshake, then the reply to the operation
+op_case() { # minor name op [arg...] < reply
+  local minor=$1 name=$2; shift
+  hello "$minor" | put "$@"
+  cat > "$name.after"
+}
 
 rm -f ./*.op ./*.bin ./*.after
 
@@ -99,98 +105,95 @@ hello 38 | trunc 20 | put connect-truncated connect
 { u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.34.8; u64 1; u64 $LAST; error 'bad option'; } | put connect-setoptions-error connect
 
 # path-info: QueryPathInfo
-{ hello 38; u64 $LAST; u64 1; info $DRV $HASH $P1 $P0; u64 1
-  strs cache.nixos.org-1:dGVzdA==; str "fixed:r:sha256:$HASH"; } | put path-info path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH; u64 0; strs; str ''; } | put path-info-plain path-info $P0
-{ hello 38; u64 $LAST; u64 0; } | put path-info-invalid path-info $P0
-{ hello 38; error "path '$P0' is not valid"; } | put path-info-not-valid-error path-info $P0
-{ hello 38; error 'disk on fire'; } | put path-info-other-error path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' "sha256:$HASH"; u64 0; strs; str ''; } | put path-info-hash-prefix path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' sha256-SrKcM+H9nz4+Hr9uDaDo+MOl46c8ksTp1ujASxpfKz0=; u64 0; strs; str ''; } | put path-info-hash-sri path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' 1b8m03r63zqhnjf7l5wnldhh7c134ap5vpj0850ymkq1iyzicy5s; u64 0; strs; str ''; } | put path-info-hash-nix32 path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' "md5:$HASH"; u64 0; strs; str ''; } | put path-info-hash-wrong-algo path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' not-a-hash; u64 0; strs; str ''; } | put path-info-hash-bad path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH /nix/store/not-a-store-path; u64 0; strs; str ''; } | put path-info-ref-bad path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH /etc/passwd; u64 0; strs; str ''; } | put path-info-ref-outside path-info $P0
-{ hello 38; u64 $LAST; u64 1; info /etc/passwd $HASH; u64 0; strs; str ''; } | put path-info-deriver-bad path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH; u64 0; strs no-colon; str ''; } | put path-info-sig-no-colon path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH; u64 0; strs; str "text:sha256:$HASH"; } | put path-info-ca-text path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH; u64 0; strs; str 'fixed:sha256'; } | put path-info-ca-bad path-info $P0
-{ hello 38; u64 $LAST; u64 2; info '' $HASH; u64 0; strs; str ''; } | put path-info-valid-2 path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH; u64 2; strs; str ''; } | put path-info-ultimate-2 path-info $P0
-{ hello 38; u64 $LAST; u64 1; info '' $HASH; } | put path-info-truncated path-info $P0
-{ hello 38
-  u64 $NEXT; str $'building\n'
+{ u64 $LAST; u64 1; info $DRV $HASH $P1 $P0; u64 1
+  strs cache.nixos.org-1:dGVzdA==; str "fixed:r:sha256:$HASH"; } | op_case 38 path-info path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH; u64 0; strs; str ''; } | op_case 38 path-info-plain path-info $P0
+{ u64 $LAST; u64 0; } | op_case 38 path-info-invalid path-info $P0
+{ error "path '$P0' is not valid"; } | op_case 38 path-info-not-valid-error path-info $P0
+{ error 'disk on fire'; } | op_case 38 path-info-other-error path-info $P0
+{ u64 $LAST; u64 1; info '' "sha256:$HASH"; u64 0; strs; str ''; } | op_case 38 path-info-hash-prefix path-info $P0
+{ u64 $LAST; u64 1; info '' sha256-SrKcM+H9nz4+Hr9uDaDo+MOl46c8ksTp1ujASxpfKz0=; u64 0; strs; str ''; } | op_case 38 path-info-hash-sri path-info $P0
+{ u64 $LAST; u64 1; info '' 1b8m03r63zqhnjf7l5wnldhh7c134ap5vpj0850ymkq1iyzicy5s; u64 0; strs; str ''; } | op_case 38 path-info-hash-nix32 path-info $P0
+{ u64 $LAST; u64 1; info '' "md5:$HASH"; u64 0; strs; str ''; } | op_case 38 path-info-hash-wrong-algo path-info $P0
+{ u64 $LAST; u64 1; info '' not-a-hash; u64 0; strs; str ''; } | op_case 38 path-info-hash-bad path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH /nix/store/not-a-store-path; u64 0; strs; str ''; } | op_case 38 path-info-ref-bad path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH /etc/passwd; u64 0; strs; str ''; } | op_case 38 path-info-ref-outside path-info $P0
+{ u64 $LAST; u64 1; info /etc/passwd $HASH; u64 0; strs; str ''; } | op_case 38 path-info-deriver-bad path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH; u64 0; strs no-colon; str ''; } | op_case 38 path-info-sig-no-colon path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH; u64 0; strs; str "text:sha256:$HASH"; } | op_case 38 path-info-ca-text path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH; u64 0; strs; str 'fixed:sha256'; } | op_case 38 path-info-ca-bad path-info $P0
+{ u64 $LAST; u64 2; info '' $HASH; u64 0; strs; str ''; } | op_case 38 path-info-valid-2 path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH; u64 2; strs; str ''; } | op_case 38 path-info-ultimate-2 path-info $P0
+{ u64 $LAST; u64 1; info '' $HASH; } | op_case 38 path-info-truncated path-info $P0
+{ u64 $NEXT; str $'building\n'
   u64 $START; u64 7; u64 3; u64 105; str "building '$DRV'"; u64 1; u64 1; str $DRV; u64 0
   u64 $RESULT; u64 7; u64 101; u64 1; u64 1; str 'a log line'
   u64 $RESULT; u64 7; u64 104; u64 1; u64 0; u64 2
   u64 $STOP; u64 7
-  u64 $LAST; u64 0; } | put path-info-stderr path-info $P0
-{ hello 38; u64 $READ; u64 8; u64 $LAST; u64 0; } | put path-info-stderr-read path-info $P0
-{ hello 38; u64 0x12345678; } | put path-info-stderr-unknown path-info $P0
+  u64 $LAST; u64 0; } | op_case 38 path-info-stderr path-info $P0
+{ u64 $READ; u64 8; u64 $LAST; u64 0; } | op_case 38 path-info-stderr-read path-info $P0
+{ u64 0x12345678; } | op_case 38 path-info-stderr-unknown path-info $P0
 
 # valid-paths and substitute: QueryValidPaths
-{ hello 38; u64 $LAST; strs $P0; } | put valid-paths valid-paths $P0 $P1
-{ hello 38; u64 $LAST; strs; } | put valid-paths-none valid-paths $P0 $P1
-{ hello 38; u64 $LAST; strs $P1 $P0 $P0; } | put valid-paths-duplicate valid-paths $P0 $P1
-{ hello 38; u64 $LAST; strs $DRV; } | put valid-paths-not-asked valid-paths $P0 $P1
-{ hello 38; u64 $LAST; strs /nix/store/not-a-store-path; } | put valid-paths-bad valid-paths $P0 $P1
-{ hello 38; u64 $LAST; strs $P1; } | put substitute substitute $P0 $P1
+{ u64 $LAST; strs $P0; } | op_case 38 valid-paths valid-paths $P0 $P1
+{ u64 $LAST; strs; } | op_case 38 valid-paths-none valid-paths $P0 $P1
+{ u64 $LAST; strs $P1 $P0 $P0; } | op_case 38 valid-paths-duplicate valid-paths $P0 $P1
+{ u64 $LAST; strs $DRV; } | op_case 38 valid-paths-not-asked valid-paths $P0 $P1
+{ u64 $LAST; strs /nix/store/not-a-store-path; } | op_case 38 valid-paths-bad valid-paths $P0 $P1
+{ u64 $LAST; strs $P1; } | op_case 38 substitute substitute $P0 $P1
 
 # missing: QueryMissing
-{ hello 38; u64 $LAST; strs $DRV; strs $P1; strs $P0; u64 4096; u64 8192; } | put missing missing "$DRV!out"
-{ hello 38; u64 $LAST; strs; strs; strs; u64 0; u64 0; } | put missing-none missing "$DRV!out"
-{ hello 38; u64 $LAST; strs /nix/store/x; strs; strs; u64 0; u64 0; } | put missing-bad missing "$DRV!out"
+{ u64 $LAST; strs $DRV; strs $P1; strs $P0; u64 4096; u64 8192; } | op_case 38 missing missing "$DRV!out"
+{ u64 $LAST; strs; strs; strs; u64 0; u64 0; } | op_case 38 missing-none missing "$DRV!out"
+{ u64 $LAST; strs /nix/store/x; strs; strs; u64 0; u64 0; } | op_case 38 missing-bad missing "$DRV!out"
 
 # output-map: QueryDerivationOutputMap
-{ hello 38; u64 $LAST; u64 2; str out; str $P0; str dev; str ''; } | put output-map output-map $DRV
-{ hello 38; u64 $LAST; u64 0; } | put output-map-empty output-map $DRV
-{ hello 38; u64 $LAST; u64 1; str out; str /etc/passwd; } | put output-map-bad output-map $DRV
+{ u64 $LAST; u64 2; str out; str $P0; str dev; str ''; } | op_case 38 output-map output-map $DRV
+{ u64 $LAST; u64 0; } | op_case 38 output-map-empty output-map $DRV
+{ u64 $LAST; u64 1; str out; str /etc/passwd; } | op_case 38 output-map-bad output-map $DRV
 
 # substitutable: QuerySubstitutablePathInfos
-{ hello 38; u64 $LAST; u64 1; str $P0; str $DRV; strs $P1; u64 100; u64 200; } | put substitutable substitutable $P0
-{ hello 38; u64 $LAST; u64 1; str $P0; str ''; strs; u64 0; u64 0; } | put substitutable-no-deriver substitutable $P0
-{ hello 38; u64 $LAST; u64 0; } | put substitutable-none substitutable $P0
+{ u64 $LAST; u64 1; str $P0; str $DRV; strs $P1; u64 100; u64 200; } | op_case 38 substitutable substitutable $P0
+{ u64 $LAST; u64 1; str $P0; str ''; strs; u64 0; u64 0; } | op_case 38 substitutable-no-deriver substitutable $P0
+{ u64 $LAST; u64 0; } | op_case 38 substitutable-none substitutable $P0
 
 # build: BuildPathsWithResults
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out" 0 '' out; } | put build build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out" 3 "builder for '$DRV' failed"; } | put build-failed build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!*" 2 ''; } | put build-all-outputs build "$DRV!*"
-{ hello 38; u64 $LAST; u64 1; built $P0 1 ''; } | put build-opaque build $P0
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out,dev,out" 0 ''; } | put build-output-set build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out" 13 ''; } | put build-status-13 build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out" 14 'no substituters'; } | put build-status-14 build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out" 15 ''; } | put build-status-unknown build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!out" 0 'kept message'; } | put build-success-message build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1; built "$DRV!" 0 ''; } | put build-no-output build "$DRV!out"
-{ hello 38; u64 $LAST; u64 0; } | put build-no-results build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1
+{ u64 $LAST; u64 1; built "$DRV!out" 0 '' out; } | op_case 38 build build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!out" 3 "builder for '$DRV' failed"; } | op_case 38 build-failed build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!*" 2 ''; } | op_case 38 build-all-outputs build "$DRV!*"
+{ u64 $LAST; u64 1; built $P0 1 ''; } | op_case 38 build-opaque build $P0
+{ u64 $LAST; u64 1; built "$DRV!out,dev,out" 0 ''; } | op_case 38 build-output-set build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!out" 13 ''; } | op_case 38 build-status-13 build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!out" 14 'no substituters'; } | op_case 38 build-status-14 build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!out" 15 ''; } | op_case 38 build-status-unknown build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!out" 0 'kept message'; } | op_case 38 build-success-message build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!" 0 ''; } | op_case 38 build-no-output build "$DRV!out"
+{ u64 $LAST; u64 0; } | op_case 38 build-no-results build "$DRV!out"
+{ u64 $LAST; u64 1
   str "$DRV!out"; u64 0; str ''; u64 1; u64 0; u64 1700000000; u64 1700000060; u64 0; u64 0
-  u64 1; str "sha256:$HASH!out"; str '[]'; } | put build-realisation-bad build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1
+  u64 1; str "sha256:$HASH!out"; str '[]'; } | op_case 38 build-realisation-bad build "$DRV!out"
+{ u64 $LAST; u64 1
   str "$DRV!out"; u64 0; str ''; u64 1; u64 0; u64 1700000000; u64 1700000060; u64 2; u64 0; u64 0
-  } | put build-cpu-tag-2 build "$DRV!out"
-{ hello 38; u64 $LAST; u64 1
+  } | op_case 38 build-cpu-tag-2 build "$DRV!out"
+{ u64 $LAST; u64 1
   str "$DRV!out"; u64 0; str ''; u64 1; u64 0; u64 1700000000; u64 1700000060; u64 256; u64 0; u64 0
-  } | put build-cpu-tag-256 build "$DRV!out"
-{ hello 37; u64 $LAST; u64 1; built "$DRV!out" 0 '' out; } | put build-1.37 build "$DRV!out"
-{ hello 36; u64 $LAST; u64 1
+  } | op_case 38 build-cpu-tag-256 build "$DRV!out"
+{ u64 $LAST; u64 1; built "$DRV!out" 0 '' out; } | op_case 37 build-1.37 build "$DRV!out"
+{ u64 $LAST; u64 1
   str "$DRV!out"; u64 0; str ''; u64 1; u64 0; u64 1700000000; u64 1700000060
-  u64 1; str "sha256:$HASH!out"; realisation; } | put build-1.36 build "$DRV!out"
+  u64 1; str "sha256:$HASH!out"; realisation; } | op_case 36 build-1.36 build "$DRV!out"
 
 # indirect-root: AddIndirectRoot
-{ hello 38; u64 $LAST; u64 1; } | put indirect-root indirect-root /tmp/nix-conformance-root
-{ hello 38; u64 $LAST; u64 0; } | put indirect-root-0 indirect-root /tmp/nix-conformance-root
-{ hello 38; error 'no permission'; } | put indirect-root-error indirect-root /tmp/nix-conformance-root
+{ u64 $LAST; u64 1; } | op_case 38 indirect-root indirect-root /tmp/nix-conformance-root
+{ u64 $LAST; u64 0; } | op_case 38 indirect-root-0 indirect-root /tmp/nix-conformance-root
+{ error 'no permission'; } | op_case 38 indirect-root-error indirect-root /tmp/nix-conformance-root
 
 # nar: NarFromPath
-{ hello 38; u64 $LAST; nar hello; } | put nar nar $P0
-{ hello 38; u64 $LAST; nar hello; str trailing; } | put nar-trailing nar $P0
-{ hello 38; u64 $LAST; nar hello | trunc 60; } | put nar-truncated nar $P0
-{ hello 38; u64 $LAST; str nix-archive-2; } | put nar-bad-magic nar $P0
+{ u64 $LAST; nar hello; } | op_case 38 nar nar $P0
+{ u64 $LAST; nar hello; str trailing; } | op_case 38 nar-trailing nar $P0
+{ u64 $LAST; nar hello | trunc 60; } | op_case 38 nar-truncated nar $P0
+{ u64 $LAST; str nix-archive-2; } | op_case 38 nar-bad-magic nar $P0
 
-# add-multiple: AddMultipleToStore of no paths; the reply waits for the upload
-hello 38 | put add-multiple add-multiple
-u64 $LAST > add-multiple.after
-hello 38 | put add-multiple-error add-multiple
-error 'cannot add' > add-multiple-error.after
+# add-multiple: AddMultipleToStore of no paths
+{ u64 $LAST; } | op_case 38 add-multiple add-multiple
+{ error 'cannot add'; } | op_case 38 add-multiple-error add-multiple

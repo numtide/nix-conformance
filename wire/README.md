@@ -1,7 +1,8 @@
 # Daemon replies to a worker-protocol client
 
 The cases of the `wire` op (SPEC.md). Each case is a scripted daemon:
-`CASE.bin` holds its bytes, `CASE.op` the operation the client runs, and
+`CASE.bin` holds the handshake, `CASE.after` the operation's reply,
+`CASE.op` the operation the client runs, and
 `CASE.exp` the answer of Nix 2.34.8's client. `make-cases` writes the
 `.op`, `.bin` and `.after` files, and `./expect` writes the `.exp` files.
 
