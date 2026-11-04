@@ -145,14 +145,14 @@ always `x86_64-linux`, so the answers are the same on every host.
 
 ## `wire`
 
-A case is a daemon's side of one conversation: `wire/CASE.bin`, and for
-an upload `wire/CASE.after`. `wire/ask` serves it on a Unix socket with
+A case is a daemon's side of one conversation: `wire/CASE.bin`, the
+handshake and the reply to `SetOptions`, and for an operation
+`wire/CASE.after`, its reply. `wire/ask` serves it on a Unix socket with
 `wire-serve` and calls `ADAPTER wire SOCKET OP ARG...`, with `OP ARG...`
 from `wire/CASE.op`. The adapter connects a client to SOCKET, runs the
 operation and prints the answer. `wire-serve` sends `CASE.bin` to each
-connection, then closes its write side. With `CASE.after`, it first reads
-until the end of the upload of `add-multiple`: a frame of 8 bytes that
-holds the count 0, then the empty frame. Then it sends `CASE.after`.
+connection. With `CASE.after`, it answers each `AddTempRoot` and sends
+`CASE.after` once the operation (and an upload) has arrived.
 
 The reference is `wire-oracle`, which iets's fuzzers also drive. It runs
 Nix 2.34.8's `RemoteStore` against a daemon at a Unix socket, one
