@@ -95,7 +95,7 @@ if [[ -n ${NIX_SRC:-} ]]; then
   src=$NIX_SRC/src/libstore-tests/data/derivation
   for f in "$src"/*.drv "$src"/ca/*.drv "$src"/ia/*.drv; do
     rel=${f#"$src"/}
-    # their input derivations are not sorted: nix-bugs/drv-canonical
+    # their input derivations are not sorted: canonical/unsorted-inputs.drv
     [[ $rel == hello.drv || $rel == firefox.drv ]] && continue
     cp "$f" "upstream/${rel//\//-}"
   done

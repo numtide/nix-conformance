@@ -1,0 +1,1 @@
+ok (call (path "/OS") (var "and") (str "s://he%culand") (call (str "s://he%culd%cules-") (var "or")) (var "icbase") (var "sne"))

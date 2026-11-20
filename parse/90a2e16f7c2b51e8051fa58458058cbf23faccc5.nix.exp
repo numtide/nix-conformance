@@ -1,0 +1,1 @@
+ok (call (path "/case/naroet/bin/qmake") (call (str "\x0a <nixpkgs%qtbase.dev}/bin/q\x1c\x1c\x1c\x1c\x1c\x1c\x1c\x1c---+K+") (var "or")))

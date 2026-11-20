@@ -3,7 +3,7 @@
 # not compile against that Nix's API is left out, and the adapter skips its
 # op.
 { lib, stdenv, pkg-config, nix, reference ? true }:
-assert lib.assertMsg (!reference || nix.version == "2.34.8") "the oracles are Nix 2.34.8, not ${nix.version}";
+assert lib.assertMsg (!reference || nix.version == "2.36.0") "the oracles are Nix 2.36.0, not ${nix.version}";
 stdenv.mkDerivation {
   name = "nix-conformance-oracles" + lib.optionalString (!reference) "-${nix.version}";
   dontUnpack = true;

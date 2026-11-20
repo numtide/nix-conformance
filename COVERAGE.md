@@ -3,7 +3,7 @@
 This file compares the suite with the tests of Nix itself. It lists the
 gaps, ranks them by the bugs they would catch, and gives the cost of each.
 
-Sources: NixOS/nix at tag `2.34.8` (the reference) and at master
+Sources: NixOS/nix at tag `2.34.8` (the reference when this comparison was made; it is 2.36.0 now) and at master
 `81da9300c` (newer tests and the newer protocol documents). Paths below
 are in that tree unless they start with this repository's layout.
 
@@ -45,15 +45,13 @@ Rank is by the real bug a gap would catch. Cost is the work to add it.
 
 **Built:** `drv/` and the `drv` op, with `lib.adapterFor` (#4).
 
-**What it catches.** Since `69b449fe5`, Nix master reads the byte 0xFF
-in an ATerm string as end of file (`nix-bugs/README.md`). Nix writes such
-bytes, because `builtins.readFile` does not check them. One such `.drv`
-in a store makes `nix store gc` fail for the whole store. The fix is
-NixOS/nix#16580. All 6 real `.drv` files in `drv/` hold a 0xFF byte, and
-Nix 2.36pre (`203f85b2`, `nixVersions.git`) refuses all 6. Building this
-target found three more `.drv` bugs (`nix-bugs/`). It also catches
-`nix-bugs/drv-round-trip`: Nix 2.34.8 writes a `"` in an input's output
-name without its escape, and cannot read it back.
+**What it catches.** For a time after `69b449fe5`, Nix master read the
+byte 0xFF in an ATerm string as end of file. Nix writes such bytes,
+because `builtins.readFile` does not check them. One such `.drv` in a
+store made `nix store gc` fail for the whole store. NixOS/nix#16580 fixed
+it before 2.36.0. All 6 real `.drv` files in `drv/` hold a 0xFF byte.
+Building this target found three more `.drv` bugs (`nix-bugs/`,
+`drv/canonical/`).
 
 **Contents.** Each byte in each field that holds bytes (`drv/bytes/`),
 the structural shapes (`drv/shape/`), the `.drv` files of
@@ -67,11 +65,8 @@ written bytes are facts, not prose.
 `doc/manual/source/protocols/derivation-aterm.md` ("Canonical form")
 gives one derivation one spelling. It rejects a literal newline in a
 string, `\q`, unsorted or duplicate keys, an escape in the system, and
-trailing bytes. Nix 2.34.8 accepts all of these. Unsorted keys and
-trailing bytes give the drvPath of the canonical form, and the others
-give a new drvPath. The reference and the specification disagree, so
-these inputs are in `nix-bugs/drv-canonical/`, and the suite requires
-neither acceptance nor refusal.
+trailing bytes. Nix 2.34.8 accepted all of these. Nix 2.36.0 refuses
+them (NixOS/nix#16284), so they are the cases of `drv/canonical/`.
 
 ### 2. Output paths from evaluation
 
@@ -138,11 +133,11 @@ NARs `dotdot`, `slash`, `nul-character`, padding, truncation and
 
 **What it catches.** A client or a daemon that another implementation
 cannot talk to, for one protocol version. `nix-bugs/daemon-client` holds
-four replies that crash Nix's own client.
+one reply that crashes Nix's own client.
 
 **Contents.** The serializers, from the `.bin` fixtures of
 `src/libstore-tests/data/{worker,serve,common}-protocol`, the handshake
-for each version, and the replies of `daemon-client`, where the expected
+for each version, and the reply of `daemon-client`, where the expected
 answer is "no crash".
 
 **Answer.** Bytes, and `ok` or `error` for robustness. The JSON beside
@@ -154,13 +149,12 @@ this suite.
 daemon in `run`. `wire-oracle` exists. It is only of use to an
 implementation that speaks the protocol.
 
-**Built: the client side.** `wire/` has 80 scripted daemons, run through
+**Built: the client side.** `wire/` has 83 scripted daemons, run through
 the answers of `wire-oracle`: the handshake from 1.17 to 1.40, and right
 and wrong replies to each operation of SPEC.md. The upstream `.bin`
 fixtures are not used, because each holds one value and the cases cover
-the same fields. The daemon side is not tested, and neither are the
-`daemon-client` replies that crash Nix. `wire-oracle` does not
-build against Nix master, so a master run skips these cases.
+the same fields. The daemon side is not tested, and neither is the
+`daemon-client` reply that crashes Nix.
 
 ### 6. Content-addressed resolution
 
@@ -228,6 +222,6 @@ built. Next, by the same measure:
   `drv` op checks the bytes and the drvPath, and `eval-okay-drv-masking`
   checks the masking only through output paths. Upstream has fixtures
   (`src/libstore-tests/data/derivation/masked`).
-- `wire-oracle` for Nix master, so a master run covers `wire/`.
+- A check that `wire-oracle` still builds against Nix master, so a master run covers `wire/`.
 - An occasional run of Nix master through `lib.adapterFor
   nixVersions.git`. It caught `69b449fe5` before a release.

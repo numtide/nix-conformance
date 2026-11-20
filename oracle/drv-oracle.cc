@@ -1,4 +1,4 @@
-// The derivation reference of nix-conformance: Nix 2.34.8's `.drv` reader
+// The derivation reference of nix-conformance: Nix 2.36.0's `.drv` reader
 // and writer, with the experimental features ca-derivations,
 // dynamic-derivations, impure-derivations and git-hashing on.
 //

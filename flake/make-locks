@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Writes flake.lock of each okay-* case with NIX, the `nix` of Nix 2.34.8,
+# Writes flake.lock of each okay-* case with NIX, the `nix` of Nix 2.36.0,
 # and makes each fail-* case from okay-follows-sibling.
 set -euo pipefail
 [[ $# == 1 ]] || { echo "usage: make-locks NIX" >&2; exit 2; }
