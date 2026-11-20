@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Writes the wire cases: CASE.op, the operation, and CASE.bin, the daemon's
 # side of the conversation (CASE.after for an upload). `./expect` then writes
-# CASE.exp. The frames are those of Nix 2.34.8: worker-protocol.cc,
+# CASE.exp. The frames are those of Nix 2.36.0: worker-protocol.cc,
 # worker-protocol-connection.cc and remote-store.cc.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -40,7 +40,7 @@ hello() { # minor [trust [features...]]
   u64 $MAGIC_2
   u64 $((0x100 | minor))
   if ((minor >= 38)); then strs "$@"; fi
-  if ((minor >= 33)); then str 2.34.8; fi
+  if ((minor >= 33)); then str 2.36.0; fi
   if ((minor >= 35)); then u64 "$trust"; fi
   u64 $LAST
   u64 $LAST
@@ -95,14 +95,14 @@ hello 17 | put connect-1.17 connect
 { u64 $MAGIC_2; u64 $((0x200 | 38)); } | put connect-major-2 connect
 { u64 0x6478696e; u64 $((0x100 | 38)); } | put connect-bad-magic connect
 hello 38 | trunc 20 | put connect-truncated connect
-{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.34.8; u64 1
+{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.36.0; u64 1
   u64 $NEXT; str $'warming up\n'
   u64 $START; u64 1; u64 3; u64 0; str 'connecting'; u64 0; u64 0
   u64 $RESULT; u64 1; u64 104; u64 1; u64 0; u64 5
   u64 $STOP; u64 1
   u64 $LAST; u64 $LAST; } | put connect-stderr connect
-{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.34.8; u64 1; error 'not allowed'; } | put connect-error connect
-{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.34.8; u64 1; u64 $LAST; error 'bad option'; } | put connect-setoptions-error connect
+{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.36.0; u64 1; error 'not allowed'; } | put connect-error connect
+{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.36.0; u64 1; u64 $LAST; error 'bad option'; } | put connect-setoptions-error connect
 
 # path-info: QueryPathInfo
 { u64 $LAST; u64 1; info $DRV $HASH $P1 $P0; u64 1
@@ -197,3 +197,11 @@ hello 38 | trunc 20 | put connect-truncated connect
 # add-multiple: AddMultipleToStore of no paths
 { u64 $LAST; } | op_case 38 add-multiple add-multiple
 { error 'cannot add'; } | op_case 38 add-multiple-error add-multiple
+
+# replies that crashed the client of Nix 2.34.8
+{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.36.0; u64 1
+  u64 $RESULT; u64 1; u64 101; u64 0
+  u64 $LAST; u64 $LAST; } | put connect-stderr-result-no-fields connect
+{ u64 $MAGIC_2; u64 $((0x100 | 38)); strs; str 2.36.0; u64 1
+  u64 $ERROR; str Other; u64 0; str Other; str 'not allowed'; u64 0; u64 0; } | put connect-error-other-type connect
+{ u64 $LAST; u64 1; info '' $HASH ''; u64 0; strs; str ''; } | op_case 38 path-info-ref-empty path-info $P0

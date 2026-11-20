@@ -1,6 +1,6 @@
 # The answers
 
-Each answer is what Nix 2.34.8 gives. Where this text and the reference
+Each answer is what Nix 2.36.0 gives. Where this text and the reference
 disagree, the reference wins and this text has a bug.
 
 ## `parse`
@@ -98,10 +98,9 @@ accepts is in the form Nix writes, so SHA256 is the hash of the file
 itself and the derivation must come back byte for byte. A file named by its
 store path gives that path as DRVPATH.
 
-Nix 2.34.8 also accepts spellings that the ATerm document of later Nix
-forbids (`doc/manual/source/protocols/derivation-aterm.md`, "Canonical
-form"). These are in `nix-bugs/drv-canonical/`, and an implementation
-may accept or refuse them.
+Nix refuses a spelling outside the canonical form of its ATerm document
+(`doc/manual/source/protocols/derivation-aterm.md`, "Canonical form").
+The cases are in `drv/canonical/`. Nix 2.34.8 accepted them.
 
 ## `flake`
 
@@ -119,7 +118,7 @@ anything instead.
 - `okay-CASE/`: the answer must be `flake/okay-CASE.exp`.
 - `fail-CASE/`: `flake` must fail. The message is not compared.
 
-A relative input's `outPath` is `…-source/./b` in Nix 2.34.8, with the
+A relative input's `outPath` is `…-source/./b` in Nix 2.36.0, with the
 `./`. No case depends on that string.
 
 ## `lang/`
@@ -155,7 +154,7 @@ connection. With `CASE.after`, it answers each `AddTempRoot` and sends
 `CASE.after` once the operation (and an upload) has arrived.
 
 The reference is `wire-oracle`, which iets's fuzzers also drive. It runs
-Nix 2.34.8's `RemoteStore` against a daemon at a Unix socket, one
+Nix 2.36.0's `RemoteStore` against a daemon at a Unix socket, one
 operation per request. The answer is one line:
 
 | Operation | Answer |

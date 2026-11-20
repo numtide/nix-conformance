@@ -1,6 +1,6 @@
 # Derivations
 
-The cases of the `drv` op (SPEC.md). Each `.drv` that Nix 2.34.8 accepts
+The cases of the `drv` op (SPEC.md). Each `.drv` that Nix 2.36.0 accepts
 is in the form Nix writes, so an implementation that reads and rewrites
 it must give the same bytes. `make-cases` writes `bytes/` and
 `shape/`, and `./expect` writes the `.exp` files.
@@ -19,14 +19,15 @@ Each is named by its store path, so DRVPATH must be that path.
 | `cf3fg1xypbfl7772fsb7jsz8gb8ni4fm-bh-sh-bytes.drv` | env values |
 
 They come from a real store, where they broke `nix store gc`. Each holds
-the byte 0xFF, which Nix after 2.34.8 reads as the end of the file
-(`nix-bugs/README.md`). `lang/eval-okay-derivation-non-utf8.nix` makes u1
-to u6 and checks their paths.
+the byte 0xFF, which Nix master read as the end of the file for a time
+(`69b449fe5`, fixed by NixOS/nix#16580 before 2.36.0).
+`lang/eval-okay-derivation-non-utf8.nix` makes u1 to u6 and checks their
+paths.
 
 ## `bytes/`
 
 - `env-value-XX.drv`: the byte 0xXX, for each of the 256, between `a` and
-  `b` in an env value. Nix 2.36pre (`203f85b2`) fails `env-value-ff` only.
+  `b` in an env value.
 - `env-value-all`, `env-name-all`, `arg-all`, `builder-all`: all 256 bytes
   in that field.
 - `system-utf8`: each ASCII byte except NUL and the five that have an
@@ -49,4 +50,14 @@ because any other algorithm crashes Nix (`nix-bugs/drv-text-hash`).
 The `.drv` files of `src/libstore-tests/data/derivation` in Nix 2.34.8,
 with `/` in their path written `-`. `hello.drv` and `firefox.drv` are
 left out because their input derivations are not sorted
-(`nix-bugs/drv-canonical`).
+(`canonical/unsorted-inputs.drv`).
+
+## `canonical/`
+
+Spellings outside the canonical form of
+`doc/manual/source/protocols/derivation-aterm.md`: a raw newline in a
+string, `\q`, env entries or input derivations out of order, an env name
+given twice, bytes after the closing parenthesis, an escape in the system
+or in an output name, an input derivation whose path does not end in
+`.drv`, and a fixed output whose path is not that of its hash. Nix 2.34.8
+accepted them. Nix refuses them since NixOS/nix#16284.

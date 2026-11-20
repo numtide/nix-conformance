@@ -1,0 +1,1 @@
+ok (call (str "2ple = callPackage ./kpeople { };\x0a  \xff\xff\xff\xff   &&ur\x03\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff   ur\x03l = ") (call (str "http://ftp.be.de%Ea.free") (var "or")) (call (str "f://ftp.be.debEa.free") (var "or")) (str "f:/"))

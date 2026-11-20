@@ -3,7 +3,7 @@
 The cases of the `flake` op (SPEC.md). Every input is a relative path
 inside the case, so a lock has no `narHash` or `lastModified` and is the
 same on every host. `make-locks` writes each `flake.lock` with Nix
-2.34.8, and `./expect` writes `okay-*.exp`.
+2.36.0, and `./expect` writes `okay-*.exp`.
 
 ## `okay-*`: the lock is read as it is
 

@@ -1,0 +1,1 @@
+ok (call (str "++") (call (str "\\:-'   ") (var "or")) (str "") (str " :'  als ") (call (str "\\% ' \xff\xff\xff  '     :-'   ") (var "or")) (str "") (str " :'  als ") (str "\\% '  ") (var "son''") (str "\\  ' ") (str "\\  ") (str "'''\\ :'   ") (var "son''") (str "\\  ' ") (str "\\  ''\\\x1d__curPos "))

@@ -1,6 +1,6 @@
 {
-  description = "A test suite for implementations of the Nix language, of NAR and of a Nix daemon client, checked against Nix 2.34.8";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/ef34387ddd751e1ab8857adf4676492d32eb24ec";
+  description = "A test suite for implementations of the Nix language, of NAR and of a Nix daemon client, checked against Nix 2.36.0";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/f78d74567f0bf6e1697c68dd44cd79b6c3fbe2f5";
   outputs = { self, nixpkgs }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
@@ -11,13 +11,14 @@
           mkdir -p $out/bin
           $CC -O2 -Wall -o $out/bin/wire-serve ${./wire/serve.c}
         '';
-        oracles = pkgs.callPackage ./oracle { };
+        nix = pkgs.nixVersions.nix_2_36;
+        oracles = pkgs.callPackage ./oracle { inherit nix; };
         mkAdapter = name: oracles: nix: pkgs.writeShellScriptBin name ''
           export PATH=${oracles}/bin:${nix}/bin:$PATH
           exec ${pkgs.bash}/bin/bash ${./adapters/nix} "$@"
         '';
-        # the reference: Nix 2.34.8 behind the adapter protocol of README.md
-        adapter = mkAdapter "nix-conformance-adapter" oracles pkgs.nix;
+        # the reference: Nix 2.36.0 behind the adapter protocol of README.md
+        adapter = mkAdapter "nix-conformance-adapter" oracles nix;
         # another Nix, such as a build of its master, as one more implementation
         adapterFor = nix: mkAdapter "nix-conformance-adapter-${nix.version}"
           (pkgs.callPackage ./oracle { inherit nix; reference = false; }) nix;
@@ -35,7 +36,7 @@
     in {
       packages = forAll (pkgs: { inherit (build pkgs) oracles adapter run wire-serve; default = (build pkgs).run; });
       lib = forAll (pkgs: { inherit (build pkgs) check adapterFor; });
-      # the expected answers are Nix 2.34.8's
+      # the expected answers are Nix 2.36.0's
       checks = forAll (pkgs: let b = build pkgs; in {
         reference = b.check {
           name = "reference";

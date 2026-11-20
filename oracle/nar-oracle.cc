@@ -1,4 +1,4 @@
-// The NAR reference of nix-conformance: Nix 2.34.8's NAR reader and writer.
+// The NAR reference of nix-conformance: Nix 2.36.0's NAR reader and writer.
 //
 //   nar-oracle FILE...   one line per file: `ok CONSUMED SHA256` or `error`
 //   nar-oracle           a server for fuzzers: frames on stdin and stdout
