@@ -1,0 +1,1 @@
+ok (&& (call (var "throw") (var "ixOS") (var "AMIs") (var "is") (var "the") (var "AWS") (select (var "API") (attrpath "P"))) (call (var "ase") (var "see") (call (str "https://nixos.org/''''L''------------%-------------------------*/------------'''LLamazon") (var "or")) (select (var "nixos") (attrpath "github"))))

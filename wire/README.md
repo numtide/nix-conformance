@@ -3,12 +3,12 @@
 The cases of the `wire` op (SPEC.md). Each case is a scripted daemon:
 `CASE.bin` holds the handshake, `CASE.after` the operation's reply,
 `CASE.op` the operation the client runs, and
-`CASE.exp` the answer of Nix 2.34.8's client. `make-cases` writes the
+`CASE.exp` the answer of Nix 2.36.0's client. `make-cases` writes the
 `.op`, `.bin` and `.after` files, and `./expect` writes the `.exp` files.
 
 | Cases | What the daemon does |
 |:---|:---|
-| `connect-*` | the handshake: trust flags, features, protocol 1.17 to 1.40, a wrong magic or major version, a truncated reply, stderr frames, and an error after the handshake or after `SetOptions` |
+| `connect-*` | the handshake: trust flags, features, protocol 1.17 to 1.40, a wrong magic or major version, a truncated reply, stderr frames, a log line without fields, an error after the handshake or after `SetOptions`, and an error of another type than `Error` |
 | `path-info-*` | `QueryPathInfo`: each field, the three hash forms, bad hashes, store paths, signatures and content addresses, a `bool` of 2, and stderr frames |
 | `valid-paths-*`, `substitute` | `QueryValidPaths`: duplicates, paths the client did not ask for, a bad path |
 | `missing-*`, `output-map-*`, `substitutable-*` | `QueryMissing`, `QueryDerivationOutputMap`, `QuerySubstitutablePathInfos` |
@@ -28,4 +28,4 @@ Some answers that a new client may not expect:
 - `AddIndirectRoot` takes any integer as its reply.
 - Bytes after the NAR of `NarFromPath` are not read.
 
-Replies that crash Nix's own client are in `nix-bugs/daemon-client/`.
+A reply that crashes Nix's own client is in `nix-bugs/daemon-client/`.

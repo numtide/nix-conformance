@@ -1,4 +1,4 @@
-# Raw bytes that are not UTF-8 in each field of a derivation: Nix 2.34.8
+# Raw bytes that are not UTF-8 in each field of a derivation: Nix
 # writes them into the .drv as they are.
 let
   b = builtins.readFile ./non-utf8-bytes;

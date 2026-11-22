@@ -1,0 +1,1 @@
+ok (call (str "") (str "$d\x0a{") (str "") (str "}") (call (str "./\xff\xff\xff\xff\xff\xff\xff%") (var "or")))

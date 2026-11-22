@@ -1,0 +1,1 @@
+ok (call (var "f") (call (str "%d") (var "or")))

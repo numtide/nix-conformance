@@ -1,26 +1,8 @@
-# Inputs on which Nix 2.34.8 itself fails
+# Inputs on which Nix 2.36.0 itself fails
 
 These are not test cases, since the reference has no correct answer for
 them. They are kept so the bugs can be reported upstream and so other
 implementations don't copy them. `run` does not read this directory.
-
-## `cursed-or-format/`: a `%` in an `or` argument
-
-Nix warns when `or` is used as an argument (`f x or`), because `or` will
-become an identifier in a future release. `ExprCall::warnIfCursedOr`
-(`src/libexpr/nixexpr.cc`) builds that warning from the source text and
-passes it to `warn()` as a boost format string. A `%` in the quoted
-source is then read as a format directive.
-
-| File | `nix-instantiate --parse FILE` |
-|:---|:---|
-| `bad-format-string.nix`, `f "%" or` | `error: boost::bad_format_string: format-string is ill-formed` |
-| `too-few-args.nix`, `f "%d" or` | `error: boost::too_few_args: format-string referred to more arguments than were passed` |
-| `abort.nix`, `i"%T%%"or` | a boost assertion fails: `Nix crashed. This is a bug.` and SIGABRT |
-
-Without the `%`, each input parses. `all/` holds the 71 inputs the fuzzers
-found in this class. 2 abort Nix, and the others end in one of the two
-errors.
 
 ## `nul-position/`: positions after a NUL byte, from a string or stdin
 
@@ -37,18 +19,6 @@ nix-instantiate --parse - < nix-bugs/nul-position/input.nix  # at «stdin»:1:9 
 The file is `{me#a<NUL>b<newline>/`. The NUL is inside a comment, so it
 does not end the input.
 
-## Nix after 2.34.8 cannot read some of its own `.drv` files
-
-Nix 2.34.8 gets this right. It is a regression on Nix master (2.36pre,
-203f85b2). `StringViewStream::get()` (`src/libstore/aterm.cc`,
-since 69b449fe5) returns a signed `char`, so the byte 0xFF compares equal
-to EOF, and a `.drv` with that byte in a string is "unterminated string
-in derivation". The inputs are cases in `drv/`, because Nix 2.34.8 writes
-and reads them. Run through `lib.adapterFor nixVersions.git`, Nix 2.36pre
-fails the six real `.drv` files, the four `bytes/*-all.drv` that hold
-0xFF, and `env-value-ff`, the only one of the 256 `bytes/env-value-XX.drv`. The fix is
-NixOS/nix#16580.
-
 ## `drv-system-quote/`: evaluation writes a `.drv` that Nix cannot read
 
 `Derivation::unparse` (`src/libstore/derivations.cc`) writes the system
@@ -58,18 +28,16 @@ with no experimental feature:
 
 ```sh
 nix-instantiate --store 'local?root=/tmp/s' nix-bugs/drv-system-quote/eval.nix
-# error: error parsing derivation '/nix/store/l2mfisn5gbg0r9q47wi02ilh6isrfyc4-sys.drv': expected string ','
+# error: error parsing derivation '/nix/store/l2mfisn5gbg0r9q47wi02ilh6isrfyc4-sys.drv': expected ',' character
 ```
 
 The `.drv` reaches the store before the error, written as `"a"b"`, so the
-string ends at the second `"`. Nix 2.34.8 and Nix 2.36pre (203f85b2) both
-fail this way. The writer must refuse such a system, because
-`derivation-aterm.md` now forbids escapes there. A `\` is worse. 2.34.8
-writes `system = "a\\nb"` as `"a\nb"` and reads it back with a newline,
-which makes it a different derivation. `nix-instantiate` stops on
-"derivation has incorrect output", and the `.drv` in the store has a
-drvPath that doesn't match its name. That is why `drv/bytes/` leaves the
-five escaped bytes out of the system.
+string ends at the second `"`. Nix 2.34.8 fails the same way. The writer
+must refuse such a system, because `derivation-aterm.md` forbids escapes
+there. A `\` fails too: Nix 2.36.0 writes `system = "a\\nb"` as `"a\nb"`,
+and then refuses to read it ("unexpected escape sequence in unquoted
+string"). That is why `drv/bytes/` leaves the five escaped bytes out of
+the system.
 
 ## `drv-text-hash/`: a text output with another hash than SHA-256 crashes Nix
 
@@ -85,71 +53,27 @@ drv-oracle nix-bugs/drv-text-hash/text-sha1.drv   # the same abort
 ```
 
 `text-md5.drv`, `text-sha1.drv` and `text-sha512.drv` abort both Nix
-2.34.8 and 2.36pre (203f85b2). Without `dynamic-derivations`, evaluation
+2.34.8 and Nix 2.36.0. Without `dynamic-derivations`, evaluation
 refuses the text output first. An implementation should refuse these
 inputs.
 
-## `drv-canonical/`: spellings that Nix 2.34.8 accepts and later Nix refuses
-
-The ATerm document of Nix after 2.34.8
-(`doc/manual/source/protocols/derivation-aterm.md`, "Canonical form")
-gives each derivation one spelling. Nix 2.34.8 accepts these others. It
-writes the derivation in its own form, so the bytes, and for most of them
-the drvPath, change:
-
-| File | Not canonical |
-|:---|:---|
-| `newline-in-string.drv` | a raw newline byte in a string |
-| `unknown-escape.drv` | `\q` |
-| `unsorted-env.drv` | env entries out of order |
-| `duplicate-env.drv` | the same env name twice |
-| `trailing-bytes.drv` | bytes after the closing parenthesis |
-| `escape-in-system.drv` | an escape in the system |
-| `input-not-drv.drv` | an input derivation whose path does not end in `.drv` |
-| `fixed-path-mismatch.drv` | a fixed output whose path is not that of its hash |
-| `unsorted-inputs.drv` | input derivations out of order: `hello.drv` of Nix's own test data |
-
-Nix 2.36pre (203f85b2) refuses them. Nix 2.34.8 never writes any of these
-forms, so no store holds them. The suite has no answer for them, and an
-implementation may accept or refuse.
-
 ## `daemon-client/`: a daemon's reply that crashes Nix's client
 
-Each file is the daemon's side of a conversation. Serve it on a socket and
-point a client at it.
+The file is the daemon's side of a conversation. Serve it on a socket and
+upload any store path without references to it.
 
 ```sh
-socat UNIX-LISTEN:/tmp/d.sock,fork SYSTEM:'cat nix-bugs/daemon-client/FILE; sleep 1' &
-# empty-store-path.bin needs an operation that reads a path info:
-# nix path-info --store unix:///tmp/d.sock /nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-x
-# answer-before-upload.bin needs an upload, of any store path without references:
-# nix copy --to unix:///tmp/d.sock /nix/store/...-source
-nix --extra-experimental-features nix-command store info --store unix:///tmp/d.sock
+socat UNIX-LISTEN:/tmp/d.sock,fork SYSTEM:'cat nix-bugs/daemon-client/answer-before-upload.bin; sleep 1' &
+nix --extra-experimental-features nix-command copy --to unix:///tmp/d.sock /nix/store/...-source
 ```
 
-| File | What the daemon sends | Nix 2.34.8 |
-|:---|:---|:---|
-| `log-line-without-fields.bin` | a `STDERR_RESULT` of type 101 (a build log line) with no fields | `nix` aborts on `assert(n < fields.size())`. A client with the plain logger (`SimpleLogger::result`, `src/libutil/logging.cc`) reads `fields[0]` and segfaults |
-| `error-of-another-type.bin` | a `STDERR_ERROR` whose type string is not `Error` | `readError` (`src/libutil/serialise.cc`) asserts `type == "Error"`, and Nix aborts |
-| `answer-before-upload.bin` | `STDERR_LAST` for `AddMultipleToStore` before the client has sent its framed upload | `FramedSink` polls the daemon without blocking while it sends. `processStderrReturn` (`src/libstore/worker-protocol-connection.cc`) asserts `block` when the poll finds `STDERR_LAST`, and `nix copy` aborts |
-| `empty-store-path.bin` | a `QueryPathInfo` reply with the empty string as a reference | `canonPath` (`src/libutil/file-system.cc`) asserts `!path.empty()` while it parses the store path, and `nix path-info` aborts. The fuzzer saw the same in the replies of `QueryValidPaths`, `QueryMissing`, `QuerySubstitutablePathInfos` and `BuildPathsWithResults` (a derived path that starts with `!`) |
+The daemon sends `STDERR_LAST` for `AddMultipleToStore` before the client
+has sent its framed upload. `FramedSink` polls the daemon without blocking
+while it sends. `processStderrReturn`
+(`src/libstore/worker-protocol-connection.cc`) asserts `block` when the
+poll finds `STDERR_LAST`, and `nix copy` aborts.
 
-A client should not crash on any of these replies. iets does not.
-
-## `drv-round-trip/`: a `.drv` that Nix reads but writes in a form it cannot read
-
-`Derivation::unparse` (`src/libstore/derivations.cc`) writes the output
-names of an input derivation with `printUnquotedStrings`, which adds no
-escapes. The parser reads them with escapes. A name that holds `"` then comes back
-broken. `quote-in-input-output.drv` uses the output `a"b` of its input,
-written `["a\"b"]`. Nix 2.34.8 reads it and writes `["a"b"]`, which it
-then refuses. Evaluation refuses such an output name, as its path would
-hold `"` (`is not a valid store path`), so only a `.drv`
-written by hand has one. `drv-oracle` shows both steps:
-
-```sh
-drv-oracle nix-bugs/drv-round-trip/quote-in-input-output.drv   # ok ...
-```
+A client should not crash on this reply. iets does not.
 
 ## `dummy-store/`: the in-memory store gives a `.drv` no references
 
@@ -191,11 +115,18 @@ value on the other. They are entry 43 of `lang/corpora/regex-invalid.nix` and en
 with both ends above 0x7f (`[à-ú]`) is in the same half on both hosts and
 keeps its case.
 
-## An unknown parameter of a `github:` or `gitlab:` flake reference
 
-Nix 2.34.8 drops it. `parseFlakeRef "github:a/b?ref=x&unknown=1"` is
-`{ owner = "a"; ref = "x"; repo = "b"; type = "github"; }`, and
-`lastModified` in a `gitlab:` reference goes the same way. Nix after
-2.34.8 (`203f85b2`) refuses both, which is safer: a misspelled `rev` or
-`narHash` no longer goes unseen. No case has one, so an implementation
-may accept or refuse it.
+## Fixed in Nix 2.36.0
+
+These entries were bugs of Nix 2.34.8. Nix 2.36.0 answers them, so they
+are cases now.
+
+| Was | Now | Nix 2.36.0 |
+|:---|:---|:---|
+| `cursed-or-format/`: a `%` in an `or` argument was read as a boost format directive | 73 cases in `parse/` | parses each input |
+| `drv-canonical/`: spellings outside the canonical form of `derivation-aterm.md` | `drv/canonical/` | refuses them (NixOS/nix#16284) |
+| `drv-round-trip/`: a `"` in the output name of an input derivation | `drv/canonical/quote-in-input-output.drv` | refuses the escape (NixOS/nix#16284) |
+| `daemon-client/log-line-without-fields.bin` | `wire/connect-stderr-result-no-fields` | no crash (NixOS/nix#16784) |
+| `daemon-client/error-of-another-type.bin` | `wire/connect-error-other-type` | an error |
+| `daemon-client/empty-store-path.bin` | `wire/path-info-ref-empty` | an error |
+| an unknown parameter of a `github:` or `gitlab:` flake reference was dropped | `lang/eval-fail-parse-flake-ref-{github,gitlab}-unknown-param` | refuses it (NixOS/nix#15331) |

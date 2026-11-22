@@ -1,4 +1,4 @@
-// The worker-protocol reference of nix-conformance: Nix 2.34.8's daemon
+// The worker-protocol reference of nix-conformance: Nix 2.36.0's daemon
 // client (RemoteStore) against a daemon at a Unix socket, one operation per
 // request, answered in the line form of SPEC.md.
 //
@@ -19,6 +19,7 @@
 #include <nix/store/path-info.hh>
 #include <nix/store/remote-store.hh>
 #include <nix/store/store-api.hh>
+#include <nix/store/build.hh>
 #include <nix/store/store-open.hh>
 #include <nix/util/hash.hh>
 #include <nix/util/serialise.hh>
@@ -147,7 +148,7 @@ std::string answer(const std::vector<std::string> & req)
         for (auto & a : args)
             targets.push_back(DerivedPath::parseLegacy(*store, a));
         std::string o = "built";
-        for (auto & r : store->buildPathsWithResults(targets)) {
+        for (auto & r : store->getBuilder()->buildPathsWithResults(targets)) {
             o += "\n" + r.path.to_string_legacy(*store) + " status=" + std::to_string(wireStatus(r));
             if (auto f = r.tryGetFailure())
                 o += " msg=" + f->message();
@@ -171,9 +172,9 @@ std::string answer(const std::vector<std::string> & req)
     }
     if (op == "add-multiple") {
         // no paths: the count 0 alone
-        std::string count(8, '\0');
-        StringSource body(count);
-        store->addMultipleToStore(body, NoRepair, CheckSigs);
+        Store::PathsSource none;
+        Activity act(*logger, lvlDebug, actUnknown);
+        store->addMultipleToStore(std::move(none), act, NoRepair, CheckSigs);
         return "ok";
     }
     if (op == "missing") {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The reference adapter: Nix 2.34.8. The flake puts the oracles and
+# The reference adapter: Nix 2.36.0. The flake puts the oracles and
 # nix-instantiate on PATH (packages.adapter). Built from another Nix
 # (lib.adapterFor), an oracle may be missing: its op is then skipped.
 op=$1 file=$2

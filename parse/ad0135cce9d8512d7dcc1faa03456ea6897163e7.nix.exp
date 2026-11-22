@@ -1,0 +1,1 @@
+ok (call (select (var "previousAttrs") (attrpath "installPhase") (call (str "%   runHook pr") (var "or"))) (str ".checkPhase or ") (var "runHook") (select (var "sepr") (attrpath "src")))

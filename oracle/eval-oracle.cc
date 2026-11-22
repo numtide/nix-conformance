@@ -1,4 +1,4 @@
-// The evaluation reference of nix-conformance: Nix 2.34.8's evaluator in
+// The evaluation reference of nix-conformance: Nix 2.36.0's evaluator in
 // pure mode, printing the value as `nix-instantiate --eval --strict` does.
 //
 //   eval-oracle FILE...   one line per file: `ok VALUE` or `error`
@@ -155,7 +155,7 @@ int main(int argc, char ** argv)
 {
     setenv("HOME", "/home/case", 1);
     // the evaluator recurses: the stack nix's own main asks for (src/nix/main.cc)
-    setStackSize(60 * 1024 * 1024);
+    ensureStackSizeAtLeast(60 * 1024 * 1024);
     initLibUtil();
     initLibStore(false);
     initGC();

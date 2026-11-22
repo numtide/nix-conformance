@@ -4,7 +4,7 @@ Conformance tests for Nix implementations.
 
 The tests cover the Nix language, NAR files, `.drv` files, flake lock files
 and the daemon protocol (client side). The expected results come from Nix
-2.34.8.
+2.36.0.
 
 ## Why?
 
@@ -122,7 +122,7 @@ tests are skipped.
 
 ## Fuzzing
 
-`packages.oracles` provides Nix 2.34.8 as servers for differential fuzzers.
+`packages.oracles` provides Nix 2.36.0 as servers for differential fuzzers.
 Run without arguments, each `*-oracle` reads requests from stdin and writes
 answers to stdout. The format is described at the top of its source file in
 `oracle/`.
@@ -138,7 +138,7 @@ answers to stdout. The format is described at the top of its source file in
 | `flake/` | flakes with relative inputs and a `flake.lock`, see `flake/README.md` | `CASE.exp` |
 | `wire/` | scripted daemons, see `wire/README.md` | `CASE.exp` |
 | `corpus/` | fuzz corpora: 3,665 Nix files and 258 NARs | none, use `--against` |
-| `nix-bugs/` | inputs where Nix 2.34.8 is wrong or differs between platforms | none, see `nix-bugs/README.md` |
+| `nix-bugs/` | inputs where Nix 2.36.0 is wrong or differs between platforms | none, see `nix-bugs/README.md` |
 | `oracle/`, `adapters/nix` | the Nix adapter and the fuzzing oracles | |
 
 In `lang/`, `eval-*-drv-*` tests check output paths and `eval-*-context-*`
@@ -152,7 +152,7 @@ test because their result depends on the platform (see
 ## Adding tests
 
 - `lang/`: add the `.nix` file. For `eval-okay-*`, also add the `.exp` file
-  with the output of Nix 2.34.8.
+  with the output of Nix 2.36.0.
 - `parse/`, `nar/`, `drv/`: add the input file and generate the `.exp` file
   with:
 
@@ -169,7 +169,7 @@ test because their result depends on the platform (see
   the reply crashes the Nix client, it belongs in `nix-bugs/daemon-client/`
   instead.
 
-`nix flake check` runs all tests against Nix 2.34.8.
+`nix flake check` runs all tests against Nix 2.36.0.
 
 Not covered yet: anything that needs a writable store (`builtins.getFlake`,
 `builtins.storePath`, reading back `builtins.toFile`) and building
