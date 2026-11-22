@@ -1,0 +1,1 @@
+[ [ "sub" 0 1 ] [ "sub" 3 2 ] [ "mul" 2 3 ] [ "div" 6 2 ] [ "lt" 1 2 ] [ "lt" 1 2 ] [ "find" "p" ] [ "find" "q" ] "lambda" ]

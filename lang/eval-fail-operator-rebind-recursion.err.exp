@@ -1,0 +1,9 @@
+error:
+       … while calling the 'isInt' builtin
+         at /pwd/lang/eval-fail-operator-rebind-recursion.nix:3:15:
+            2| # (numtide/iets#277)
+            3| let "__sub" = builtins.isInt (-0.0e0); in __sub
+             |               ^
+            4|
+
+       error: infinite recursion encountered
